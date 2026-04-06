@@ -1,0 +1,232 @@
+# =============================================================================
+# GOAD (Game of Active Directory) — Ludus Range Config
+# =============================================================================
+# Based on: https://github.com/Orange-Cyberdefense/GOAD
+# Adapted for Ludus by Bad Sector Labs
+#
+# 3 forests, 3 domains, 5 Windows servers + 1 Kali attacker
+# Includes: ADCS (all ESCs), MSSQL, LAPS, child domain, forest trust,
+#           SMB shares, IIS WebDAV, misconfigurations, and more
+# =============================================================================
+
+network:
+  inter_vlan_default: ACCEPT
+  rules:
+    - name: Allow Kali to Windows
+      vlan_src: 99
+      vlan_dst: 10
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow Windows to Kali
+      vlan_src: 10
+      vlan_dst: 99
+      protocol: all
+      ports: all
+      action: ACCEPT
+
+ludus:
+  # ===========================================================================
+  # DC01 — kingslanding — sevenkingdoms.local (Forest Root)
+  # ===========================================================================
+  - vm_name: '{{ range_id }}-DC01'
+    hostname: kingslanding
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 10
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: false
+    domain:
+      fqdn: sevenkingdoms.local
+      role: primary-dc
+
+  # ===========================================================================
+  # DC02 — winterfell — north.sevenkingdoms.local (Child Domain)
+  # ===========================================================================
+  - vm_name: '{{ range_id }}-DC02'
+    hostname: winterfell
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 11
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: true
+    roles:
+      - name: ludus_child_domain
+      - name: ludus_ad_password_policy
+      - name: ludus_bulk_ad_content
+      - name: ludus_ad_acls
+      - name: ludus_ad_misconfigs
+      - name: ludus_ad_anonymous_rpc
+      - name: ludus_smb_shares
+      - name: ludus_files
+    role_vars:
+      ludus_child_domain_fqdn: north.sevenkingdoms.local
+      ludus_parent_domain_fqdn: sevenkingdoms.local
+      ludus_parent_dc_ip: 10.{{ range_second_octet }}.10.10
+      ludus_password_policy_mode: goad
+      ludus_ad_content_mode: goad
+      ludus_ad_acl_mode: goad
+      ludus_misconfigs_mode: goad
+      ludus_smb_shares_mode: goad
+      ludus_files_mode: goad
+
+  # ===========================================================================
+  # SRV02 — castelblack — north.sevenkingdoms.local (Member Server)
+  # MSSQL + IIS WebDAV + SMB shares
+  # ===========================================================================
+  - vm_name: '{{ range_id }}-SRV02'
+    hostname: castelblack
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 12
+    ram_gb: 6
+    cpus: 2
+    windows:
+      sysprep: true
+    roles:
+      - name: ludus_child_domain_join
+        depends_on:
+          - vm_name: "{{ range_id }}-DC02"
+            role: ludus_child_domain
+      - name: ludus_ad_misconfigs
+      - name: ludus_iis_webdav
+      - name: ludus_mssql
+      - name: ludus_smb_shares
+      - name: ludus_files
+    role_vars:
+      ludus_child_domain_fqdn: north.sevenkingdoms.local
+      ludus_child_dc_ip: 10.{{ range_second_octet }}.10.11
+      ludus_parent_domain_fqdn: sevenkingdoms.local
+      ludus_misconfigs_mode: goad
+      # IIS WebDAV
+      ludus_iis_webdav_mode: server
+      ludus_iis_install_aspnet: true
+      ludus_iis_install_legacy_compat: true
+      ludus_iis_content_mode: goad
+      ludus_iis_upload_dir: C:\inetpub\wwwroot\upload
+      ludus_iis_upload_dir_user: IIS_IUSRS
+      ludus_iis_upload_dir_rights: FullControl
+      # MSSQL
+      ludus_mssql_enable_tcp: true
+      ludus_mssql_mixed_mode_auth: true
+      ludus_mssql_install_ssms: false
+      ludus_mssql_fix_dotnet_config: true
+      ludus_mssql_enable_sa: true
+      ludus_mssql_sa_password: YouWillNotKerboroast1ngMeeeeee
+      ludus_mssql_sysadmins:
+        - NORTH\sql_svc
+        - NORTH\jon.snow
+      ludus_mssql_impersonations:
+        - grantor: sa
+          grantee: NORTH\samwell.tarly
+        - grantor: NORTH\jon.snow
+          grantee: NORTH\brandon.stark
+      ludus_mssql_impersonation_users:
+        - login: NORTH\arya.stark
+          database: msdb
+          impersonate_user: dbo
+      ludus_mssql_linked_servers:
+        - name: YOURSERVER
+          data_source: braavos.essos.local
+          remote_user: sa
+          remote_password: Admin123!
+      ludus_smb_shares_mode: goad
+      ludus_files_mode: goad
+
+  # ===========================================================================
+  # DC03 — meereen — essos.local (Separate Forest)
+  # ===========================================================================
+  - vm_name: '{{ range_id }}-DC03'
+    hostname: meereen
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 13
+    ram_gb: 8
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: essos.local
+      role: primary-dc
+
+  # ===========================================================================
+  # SRV03 — braavos — essos.local (Member Server)
+  # ADCS (all ESCs) + MSSQL + LAPS
+  # ===========================================================================
+  - vm_name: '{{ range_id }}-SRV03'
+    hostname: braavos
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 14
+    ram_gb: 6
+    cpus: 2
+    windows:
+      sysprep: true
+    domain:
+      fqdn: essos.local
+      role: member
+    roles:
+      - name: badsectorlabs.ludus_adcs
+      - name: ludus_mssql
+      - name: ludus_ad_laps
+      - name: ludus_ad_misconfigs
+      - name: ludus_smb_shares
+    role_vars:
+      # ADCS — All ESC attack paths
+      ludus_adcs_esc1: true
+      ludus_adcs_esc2: true
+      ludus_adcs_esc3: true
+      ludus_adcs_esc3_cra: true
+      ludus_adcs_esc4: true
+      ludus_adcs_esc5: true
+      ludus_adcs_esc6: true
+      ludus_adcs_esc7: true
+      ludus_adcs_esc8: true
+      ludus_adcs_esc9: true
+      ludus_adcs_esc10: true
+      ludus_adcs_esc10_case1: true
+      ludus_adcs_esc10_case2: true
+      ludus_adcs_esc11: true
+      ludus_adcs_esc13: true
+      ludus_adcs_esc14: true
+      ludus_adcs_esc14_create_users: true
+      ludus_adcs_esc15: true
+      ludus_adcs_esc16: true
+      ludus_adcs_esc7_ca_manager_user: viserys.targaryen
+      ludus_adcs_esc7_ca_manager_password: GoldCrown
+      ludus_adcs_esc13_group: greatmaster
+      # MSSQL
+      ludus_mssql_enable_tcp: true
+      ludus_mssql_mixed_mode_auth: true
+      ludus_mssql_install_ssms: false
+      ludus_mssql_fix_dotnet_config: true
+      ludus_mssql_enable_sa: true
+      ludus_mssql_sa_password: Admin123!
+      ludus_mssql_sysadmins:
+        - ESSOS\sql_svc
+      # LAPS
+      ludus_laps_ou: OU=Laps,DC=essos,DC=local
+      ludus_laps_readers:
+        - jorah.mormont
+        - Spys
+      ludus_misconfigs_mode: goad
+      ludus_smb_shares_mode: goad
+
+  # ===========================================================================
+  # Kali — Attacker Box
+  # ===========================================================================
+  - vm_name: '{{ range_id }}-kali'
+    hostname: '{{ range_id }}-kali'
+    template: kali-x64-desktop-template
+    vlan: 99
+    ip_last_octet: 1
+    ram_gb: 16
+    cpus: 6
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
