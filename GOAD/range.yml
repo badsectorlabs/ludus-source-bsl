@@ -55,14 +55,14 @@ ludus:
     windows:
       sysprep: true
     roles:
-      - name: ludus_child_domain
-      - name: ludus_ad_password_policy
-      - name: ludus_bulk_ad_content
-      - name: ludus_ad_acls
-      - name: ludus_ad_misconfigs
-      - name: ludus_ad_anonymous_rpc
-      - name: ludus_smb_shares
-      - name: ludus_files
+      - name: badsectorlabs.ludus_windows_utils.ludus_child_domain
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_password_policy
+      - name: badsectorlabs.ludus_windows_utils.ludus_bulk_ad_content
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_acls
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_anonymous_rpc
+      - name: badsectorlabs.ludus_windows_utils.ludus_smb_shares
+      - name: badsectorlabs.ludus_windows_utils.ludus_files
     role_vars:
       ludus_child_domain_fqdn: north.sevenkingdoms.local
       ludus_parent_domain_fqdn: sevenkingdoms.local
@@ -83,20 +83,20 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 12
-    ram_gb: 6
+    ram_gb: 4
     cpus: 2
     windows:
       sysprep: true
     roles:
-      - name: ludus_child_domain_join
+      - name: badsectorlabs.ludus_windows_utils.ludus_child_domain_join
         depends_on:
           - vm_name: "{{ range_id }}-DC02"
-            role: ludus_child_domain
-      - name: ludus_ad_misconfigs
-      - name: ludus_iis_webdav
+            role: badsectorlabs.ludus_windows_utils.ludus_child_domain
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_windows_utils.ludus_iis_webdav
       - name: ludus_mssql
-      - name: ludus_smb_shares
-      - name: ludus_files
+      - name: badsectorlabs.ludus_windows_utils.ludus_smb_shares
+      - name: badsectorlabs.ludus_windows_utils.ludus_files
     role_vars:
       ludus_child_domain_fqdn: north.sevenkingdoms.local
       ludus_child_dc_ip: 10.{{ range_second_octet }}.10.11
@@ -172,9 +172,9 @@ ludus:
     roles:
       - name: badsectorlabs.ludus_adcs
       - name: ludus_mssql
-      - name: ludus_ad_laps
-      - name: ludus_ad_misconfigs
-      - name: ludus_smb_shares
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_laps
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_windows_utils.ludus_smb_shares
     role_vars:
       # ADCS — All ESC attack paths
       ludus_adcs_esc1: true
@@ -224,8 +224,8 @@ ludus:
     template: kali-x64-desktop-template
     vlan: 99
     ip_last_octet: 1
-    ram_gb: 16
-    cpus: 6
+    ram_gb: 8
+    cpus: 4
     linux: true
     testing:
       snapshot: false
