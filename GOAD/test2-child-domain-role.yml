@@ -1,0 +1,64 @@
+# =============================================================================
+# TEST 2 — Child domain join after ludus_child_domain role
+# =============================================================================
+# Purpose: Can we join after OUR ludus_child_domain role runs on DC02?
+# Ludus does NOT natively promote a child DC without domain block — here we
+# use domain block for promotion AND add ludus_child_domain role.
+#
+# If TEST 1 PASSED but TEST 2 FAILS: ludus_child_domain role breaks something
+# If TEST 2 PASSES: move to test3
+# =============================================================================
+
+network:
+  inter_vlan_default: ACCEPT
+
+ludus:
+  # Forest root — no roles needed
+  - vm_name: '{{ range_id }}-DC01'
+    hostname: kingslanding
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 10
+    ram_gb: 4
+    cpus: 2
+    windows:
+      sysprep: false
+    domain:
+      fqdn: sevenkingdoms.local
+      role: primary-dc
+
+  # Child DC — only ludus_child_domain role, nothing else
+  - vm_name: '{{ range_id }}-DC02'
+    hostname: winterfell
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 11
+    ram_gb: 4
+    cpus: 2
+    windows:
+      sysprep: true
+    roles:
+      - name: ludus_child_domain
+    role_vars:
+      ludus_child_domain_fqdn: north.sevenkingdoms.local
+      ludus_parent_domain_fqdn: sevenkingdoms.local
+      ludus_parent_dc_ip: 10.{{ range_second_octet }}.10.10
+
+  # Member server — join after ludus_child_domain completes on DC02
+  - vm_name: '{{ range_id }}-SRV02'
+    hostname: castelblack
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 12
+    ram_gb: 4
+    cpus: 2
+    windows:
+      sysprep: true
+    roles:
+      - name: ludus_child_domain_join
+        depends_on:
+          - vm_name: "{{ range_id }}-DC02"
+            role: ludus_child_domain
+    role_vars:
+      ludus_child_domain_fqdn: north.sevenkingdoms.local
+      ludus_child_dc_ip: 10.{{ range_second_octet }}.10.11

@@ -7,6 +7,10 @@
 # 3 forests, 3 domains, 5 Windows servers + 1 Kali attacker
 # Includes: ADCS (all ESCs), MSSQL, LAPS, child domain, forest trust,
 #           SMB shares, IIS WebDAV, misconfigurations, and more
+#
+# NOTE: All ludus_windows_utils roles are referenced by bare name so Ludus
+# resolves them from the standalone roles path updated via:
+#   ludus ansible role add -d ./roles/<role_name> --force
 # =============================================================================
 
 network:
@@ -28,6 +32,7 @@ network:
 ludus:
   # ===========================================================================
   # DC01 — kingslanding — sevenkingdoms.local (Forest Root)
+  # Lannister/Baratheon/Small Council users + forest trust to essos.local
   # ===========================================================================
   - vm_name: '{{ range_id }}-DC01'
     hostname: kingslanding
@@ -41,9 +46,41 @@ ludus:
     domain:
       fqdn: sevenkingdoms.local
       role: primary-dc
+    roles:
+      - name: ludus_ad_password_policy
+      - name: ludus_bulk_ad_content
+      - name: ludus_ad_acls
+      - name: ludus_ad_misconfigs
+      # Forest trust MUST run after bulk_ad_content on BOTH sides so cross-domain
+      # group members (e.g., essos.local\daenerys.targaryen in AcrossTheNarrowSea)
+      # can be resolved. Depends on DC03's bulk_ad_content completing first.
+      - name: ludus_ad_forest_trust
+        depends_on:
+          - vm_name: "{{ range_id }}-DC03"
+            role: ludus_bulk_ad_content
+      - name: ludus_smb_shares
+      - name: ludus_files
+    role_vars:
+      ludus_password_policy_mode: goad
+      ludus_ad_content_mode: goad
+      ludus_ad_acl_mode: goad
+      ludus_misconfigs_mode: goad
+      # Forest trust — sevenkingdoms.local <-> essos.local
+      ludus_trust_partner_domain: essos.local
+      ludus_trust_partner_dc_ip: 10.{{ range_second_octet }}.10.13
+      ludus_dns_forward_zone: essos.local
+      ludus_dns_forward_server: 10.{{ range_second_octet }}.10.13
+      # Cross-domain group members (populated after trust is established)
+      ludus_cross_domain_group_members:
+        - group: AcrossTheNarrowSea
+          members:
+            - "essos.local\\daenerys.targaryen"
+      ludus_smb_shares_mode: goad
+      ludus_files_mode: goad
 
   # ===========================================================================
   # DC02 — winterfell — north.sevenkingdoms.local (Child Domain)
+  # Stark/Night Watch users + anonymous RPC + MSSQL domain accounts
   # ===========================================================================
   - vm_name: '{{ range_id }}-DC02'
     hostname: winterfell
@@ -55,14 +92,19 @@ ludus:
     windows:
       sysprep: true
     roles:
-      - name: badsectorlabs.ludus_windows_utils.ludus_child_domain
-      - name: badsectorlabs.ludus_windows_utils.ludus_ad_password_policy
-      - name: badsectorlabs.ludus_windows_utils.ludus_bulk_ad_content
-      - name: badsectorlabs.ludus_windows_utils.ludus_ad_acls
-      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
-      - name: badsectorlabs.ludus_windows_utils.ludus_ad_anonymous_rpc
-      - name: badsectorlabs.ludus_windows_utils.ludus_smb_shares
-      - name: badsectorlabs.ludus_windows_utils.ludus_files
+      - name: ludus_child_domain
+      - name: ludus_ad_password_policy
+      - name: ludus_bulk_ad_content
+      - name: ludus_ad_acls
+      - name: ludus_ad_misconfigs
+      # anonymous_rpc MUST run AFTER all child domain member joins complete.
+      # It applies LSA settings that break NetJoinDomain from workgroup machines.
+      - name: ludus_ad_anonymous_rpc
+        depends_on:
+          - vm_name: "{{ range_id }}-SRV02"
+            role: ludus_child_domain_join
+      - name: ludus_smb_shares
+      - name: ludus_files
     role_vars:
       ludus_child_domain_fqdn: north.sevenkingdoms.local
       ludus_parent_domain_fqdn: sevenkingdoms.local
@@ -83,23 +125,27 @@ ludus:
     template: win2022-server-x64-template
     vlan: 10
     ip_last_octet: 12
-    ram_gb: 4
+    ram_gb: 6
     cpus: 2
     windows:
       sysprep: true
     roles:
-      - name: badsectorlabs.ludus_windows_utils.ludus_child_domain_join
+      # SRV02 must join AFTER ludus_ad_misconfigs completes on DC02.
+      # ludus_ad_anonymous_rpc on DC02 depends_on THIS join completing first,
+      # preventing it from rebooting DC02 while the join is in progress.
+      - name: ludus_child_domain_join
         depends_on:
           - vm_name: "{{ range_id }}-DC02"
-            role: badsectorlabs.ludus_windows_utils.ludus_child_domain
-      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
-      - name: badsectorlabs.ludus_windows_utils.ludus_iis_webdav
+            role: ludus_ad_misconfigs
+      - name: ludus_ad_misconfigs
+      - name: ludus_iis_webdav
       - name: ludus_mssql
-      - name: badsectorlabs.ludus_windows_utils.ludus_smb_shares
-      - name: badsectorlabs.ludus_windows_utils.ludus_files
+      - name: ludus_smb_shares
+      - name: ludus_files
     role_vars:
       ludus_child_domain_fqdn: north.sevenkingdoms.local
       ludus_child_dc_ip: 10.{{ range_second_octet }}.10.11
+      ludus_child_dc_hostname: winterfell
       ludus_parent_domain_fqdn: sevenkingdoms.local
       ludus_misconfigs_mode: goad
       # IIS WebDAV
@@ -116,7 +162,7 @@ ludus:
       ludus_mssql_install_ssms: false
       ludus_mssql_fix_dotnet_config: true
       ludus_mssql_enable_sa: true
-      ludus_mssql_sa_password: YouWillNotKerboroast1ngMeeeeee
+      ludus_mssql_sa_password: "Sup1_sa_P@ssw0rd!"
       ludus_mssql_sysadmins:
         - NORTH\sql_svc
         - NORTH\jon.snow
@@ -130,15 +176,16 @@ ludus:
           database: msdb
           impersonate_user: dbo
       ludus_mssql_linked_servers:
-        - name: YOURSERVER
+        - name: BRAAVOS
           data_source: braavos.essos.local
           remote_user: sa
-          remote_password: Admin123!
+          remote_password: "sa_P@ssw0rd!Ess0s"
       ludus_smb_shares_mode: goad
       ludus_files_mode: goad
 
   # ===========================================================================
   # DC03 — meereen — essos.local (Separate Forest)
+  # Targaryen/Dothraki users + forest trust to sevenkingdoms.local
   # ===========================================================================
   - vm_name: '{{ range_id }}-DC03'
     hostname: meereen
@@ -152,6 +199,44 @@ ludus:
     domain:
       fqdn: essos.local
       role: primary-dc
+    roles:
+      - name: ludus_ad_password_policy
+      - name: ludus_bulk_ad_content
+      - name: ludus_ad_misconfigs
+      - name: ludus_ad_acls
+      # LAPS DC-side: schema extension and GPO — must run before braavos client-side
+      - name: ludus_ad_laps
+      # Forest trust MUST run after bulk_ad_content on BOTH sides.
+      - name: ludus_ad_forest_trust
+        depends_on:
+          - vm_name: "{{ range_id }}-DC01"
+            role: ludus_bulk_ad_content
+      - name: ludus_smb_shares
+    role_vars:
+      ludus_password_policy_mode: goad
+      ludus_ad_content_mode: goad
+      ludus_misconfigs_mode: goad
+      ludus_ad_acl_mode: goad
+      # LAPS DC-side config
+      ludus_laps_ou: OU=Laps,DC=essos,DC=local
+      ludus_laps_readers:
+        - jorah.mormont
+        - Spys
+      # Forest trust — essos.local <-> sevenkingdoms.local
+      ludus_trust_partner_domain: sevenkingdoms.local
+      ludus_trust_partner_dc_ip: 10.{{ range_second_octet }}.10.10
+      ludus_dns_forward_zone: sevenkingdoms.local
+      ludus_dns_forward_server: 10.{{ range_second_octet }}.10.10
+      # Cross-domain group members (populated after trust is established)
+      ludus_cross_domain_group_members:
+        - group: DragonsFriends
+          members:
+            - "sevenkingdoms.local\\tyron.lannister"
+            - "essos.local\\daenerys.targaryen"
+        - group: Spys
+          members:
+            - "sevenkingdoms.local\\Small Council"
+      ludus_smb_shares_mode: goad
 
   # ===========================================================================
   # SRV03 — braavos — essos.local (Member Server)
@@ -172,9 +257,13 @@ ludus:
     roles:
       - name: badsectorlabs.ludus_adcs
       - name: ludus_mssql
-      - name: badsectorlabs.ludus_windows_utils.ludus_ad_laps
-      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
-      - name: badsectorlabs.ludus_windows_utils.ludus_smb_shares
+      # LAPS client-side: move braavos$ to the LAPS OU. DC-side runs on DC03 first.
+      - name: ludus_ad_laps
+        depends_on:
+          - vm_name: "{{ range_id }}-DC03"
+            role: ludus_ad_laps
+      - name: ludus_ad_misconfigs
+      - name: ludus_smb_shares
     role_vars:
       # ADCS — All ESC attack paths
       ludus_adcs_esc1: true
@@ -205,10 +294,20 @@ ludus:
       ludus_mssql_install_ssms: false
       ludus_mssql_fix_dotnet_config: true
       ludus_mssql_enable_sa: true
-      ludus_mssql_sa_password: Admin123!
+      ludus_mssql_sa_password: "sa_P@ssw0rd!Ess0s"
       ludus_mssql_sysadmins:
         - ESSOS\sql_svc
+        - ESSOS\khal.drogo
+      ludus_mssql_impersonations:
+        - grantor: sa
+          grantee: ESSOS\jorah.mormont
+      ludus_mssql_linked_servers:
+        - name: CASTELBLACK
+          data_source: castelblack.north.sevenkingdoms.local
+          remote_user: sa
+          remote_password: "Sup1_sa_P@ssw0rd!"
       # LAPS
+      ludus_laps_client_only: true
       ludus_laps_ou: OU=Laps,DC=essos,DC=local
       ludus_laps_readers:
         - jorah.mormont
