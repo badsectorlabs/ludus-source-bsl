@@ -1,0 +1,5 @@
+validate:
+  image: python:3.12-slim
+  script:
+    - pip install --quiet pyyaml
+    - python scripts/validate.py

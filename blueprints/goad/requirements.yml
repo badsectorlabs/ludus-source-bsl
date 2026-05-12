@@ -1,0 +1,18 @@
+# requirements.yml: dependencies for the GOAD blueprint.
+# Uses ansible-galaxy requirements format (supports both roles: and collections:).
+
+roles:
+  # ADCS role — all ESC attack path templates (ESC1-16)
+  - name: badsectorlabs.ludus_adcs
+    src: https://github.com/badsectorlabs/ludus_adcs
+    version: main
+
+collections:
+  # Windows utils collection — all AD/Windows utility roles
+  # Includes: ludus_child_domain, ludus_child_domain_join, ludus_ad_password_policy,
+  #   ludus_bulk_ad_content, ludus_ad_acls, ludus_ad_misconfigs, ludus_ad_anonymous_rpc,
+  #   ludus_smb_shares, ludus_files, ludus_iis_webdav, ludus_mssql, ludus_ad_laps,
+  #   ludus_ad_gmsa, ludus_ad_forest_trust
+  # Install with: ludus ansible collection add badsectorlabs.ludus_windows_utils
+  - name: badsectorlabs.ludus_windows_utils
+    version: ">=1.1.35"

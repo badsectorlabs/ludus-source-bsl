@@ -1,72 +1,81 @@
-# Ludus Range Configs
+# Bad Sector Labs — Ludus Range Configs
 
-Community-contributed range configurations for [Ludus](https://ludus.cloud) cyber ranges. Each folder contains a complete, tested range config ready to deploy.
+A [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources) shipping production-ready blueprints for offensive security labs. Add the source once, then apply any blueprint to spin up a fully configured range in one step.
 
-## Available Ranges
+```bash
+ludus source add https://github.com/badsectorlabs/ludus-range-configs
+ludus blueprint list
+```
 
-| Range | Description | VMs | Domains | Templates Required |
-|---|---|---|---|---|
-| [GOAD](./GOAD/) | Game of Active Directory — multi-forest AD attack lab | 6 + Kali | `sevenkingdoms.local`, `north.sevenkingdoms.local`, `essos.local` | `win2022-server-x64-template`, `kali-x64-desktop-template` |
-| [SCCM](./SCCM/) | SCCM/MECM hierarchy lab — CAS + primary + secondary sites with all site system roles | 13 | `mayyhem.com` | `win2022-server-x64-template`, `win11-22h2-x64-enterprise-template` |
+## Blueprints
+
+| Blueprint ID | Name | VMs | Description |
+|---|---|---|---|
+| [`goad`](./blueprints/goad/) | Game of Active Directory | 6 | Multi-domain, multi-forest AD attack lab with ADCS ESC1-16, MSSQL, LAPS, gMSA, and the full upstream GOAD ACL chain |
+| [`sccm`](./blueprints/sccm/) | SCCM / MECM Hierarchy Lab | 13 | Full CAS + Primary Site + Secondary Site hierarchy; vulnerable to nearly all Misconfiguration Manager techniques |
+| [`goad-elastic`](./blueprints/goad-elastic/) | GOAD + Elastic Security | 5 | AD attack lab with Elastic SIEM, Fleet, and Sysmon on every Windows VM |
 
 ## Quick Start
 
 ```bash
-# 1. Clone this repo
-git clone https://github.com/badsectorlabs/ludus-range-configs.git
+# Add this source to your Ludus server
+ludus source add https://github.com/badsectorlabs/ludus-range-configs
 
-# 2. Pick a range config
-cd ludus-range-configs/GOAD
+# List available blueprints
+ludus blueprint list
 
-# 3. Set the config on your Ludus range
-ludus range config set -f range.yml -r <YOUR_RANGE_ID>
+# Apply a blueprint and deploy
+ludus blueprint apply ludus-range-configs/goad
+ludus range deploy
 
-# 4. Deploy
-ludus range deploy -r <YOUR_RANGE_ID>
-
-# 5. Monitor
-ludus range logs -r <YOUR_RANGE_ID> -f
+# Follow the logs
+ludus range logs -f
 ```
 
-## Repository Structure
+## Source Layout
 
 ```
-ludus-range-configs/
-├── README.md              # This file
-├── CONTRIBUTING.md         # How to contribute a range config
-├── LICENSE
-├── GOAD/
-│   ├── README.md          # Range overview, diagram, attack paths, credentials
-│   └── range.yml          # The Ludus range config file
-├── SCCM/
-│   ├── README.md          # SCCM hierarchy overview, diagram, attack paths
-│   └── range.yml          # The Ludus range config file
-├── <your-range>/
-│   ├── README.md
-│   └── range.yml
-└── ...
+blueprints/
+├── goad/                  Game of Active Directory
+│   ├── blueprint.yml      Blueprint metadata
+│   ├── range-config.yml   Ludus range configuration
+│   ├── requirements.yml   Role and collection dependencies
+│   ├── subscription_refs.yml
+│   ├── roles/             Blueprint-local Ansible roles (none)
+│   ├── templates/         Blueprint-local Packer templates (none)
+│   ├── testing/           Validation test suite (validate_goad.py, pytest)
+│   └── README.md
+├── sccm/                  SCCM / MECM Hierarchy Lab
+│   ├── blueprint.yml
+│   ├── range-config.yml
+│   ├── requirements.yml
+│   ├── subscription_refs.yml
+│   ├── roles/
+│   ├── templates/
+│   └── README.md
+└── goad-elastic/          GOAD + Elastic Security
+    ├── blueprint.yml
+    ├── range-config.yml
+    ├── requirements.yml
+    ├── subscription_refs.yml
+    ├── roles/
+    ├── templates/
+    └── README.md
+
+roles/                     Ansible roles shared across all blueprints (none)
+templates/                 Packer templates shared across all blueprints (none)
+source.yml                 Source metadata
+scripts/validate.py        Manifest validation (run by CI)
 ```
-
-Each range folder **must** contain:
-- `range.yml` — A valid Ludus range config using `{{ range_id }}` and `{{ range_second_octet }}` for portability
-- `README.md` — Documentation including a **Mermaid network diagram**, VM table, required roles/collections, credentials, and attack path summary
-
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide. The short version:
-
-1. **Fork** this repo
-2. **Create a folder** for your range (e.g., `my-cool-lab/`)
-3. Add a `range.yml` and `README.md` (use the [template](./CONTRIBUTING.md#range-readme-template))
-4. Include a **Mermaid diagram** in your README showing the network topology
-5. **Test your config** on a real Ludus deployment — only submit configs that deploy successfully
-6. Open a **Pull Request**
 
 ## Requirements
 
 - [Ludus](https://ludus.cloud) v2.0+
-- Required templates must be built before deploying (check each range's README for specifics)
-- Some ranges require community Ansible roles — install instructions are in each range's README
+- Templates must be built before deploying — see each blueprint's README for specifics
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on adding new blueprints.
 
 ## License
 
@@ -74,7 +83,7 @@ GPL-3.0-or-later — See [LICENSE](./LICENSE)
 
 ## Acknowledgments
 
-- [Ludus](https://ludus.cloud) by [Bad Sector Labs](https://github.com/badsectorlabs)
 - [GOAD](https://github.com/Orange-Cyberdefense/GOAD) by [@Mayfly277](https://github.com/Mayfly277) / [Orange Cyberdefense](https://github.com/Orange-Cyberdefense)
-- [@ChoiSG](https://github.com/ChoiSG) for early [Ludus community roles](https://github.com/ChoiSG/ludus_ansible_roles)
-- [ludus_sccm](https://github.com/Mayyhem/ludus_sccm) by [@Mayyhem](https://github.com/Mayyhem), building on [@Synzack](https://github.com/Synzack) & [@kernel-sanders](https://github.com/kernel-sanders)
+- [DreadGOAD](https://github.com/dreadnode/DreadGOAD) by [Dreadnode](https://github.com/dreadnode)
+- [ludus_sccm](https://github.com/Mayyhem/ludus_sccm) by [@Mayyhem](https://github.com/Mayyhem), [@Synzack](https://github.com/Synzack) & [@kernel-sanders](https://github.com/kernel-sanders)
+- [Ludus](https://ludus.cloud) by [Bad Sector Labs](https://github.com/badsectorlabs)

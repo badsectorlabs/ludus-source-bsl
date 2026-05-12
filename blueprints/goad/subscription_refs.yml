@@ -1,0 +1,4 @@
+# subscription_refs.yml: GOAD uses no subscription/license-gated roles.
+# All roles are open-source and available via Galaxy or public GitHub.
+
+roles: []

@@ -1,0 +1,4 @@
+# subscription_refs.yml: GOAD + Elastic uses no subscription/license-gated roles.
+# All roles are open-source and available via public GitHub or Ansible Galaxy.
+
+roles: []

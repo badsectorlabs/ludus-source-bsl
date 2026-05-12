@@ -1,0 +1,23 @@
+manifest_version: 1
+id: goad-elastic
+name: "GOAD + Elastic Security"
+description: >
+  Active Directory attack lab with full Elastic Security stack.
+  Single-domain corp.local with DC, member server (IIS/WebDAV/SMB),
+  Windows 11 workstation, and a dedicated Elastic SIEM/Fleet server.
+  All badsectorlabs.ludus_windows_utils roles exercised: ACLs, LAPS, gMSA,
+  misconfigs, anonymous RPC, bulk AD content, password policy, SMB shares,
+  IIS WebDAV, and credential breadcrumbs. Elastic Agents with Sysmon on
+  every Windows VM ship telemetry to the Elastic container for detection labs.
+version: 0.1.0
+config: range-config.yml
+
+tags:
+  - active-directory
+  - elastic
+  - siem
+  - windows
+  - attack-lab
+  - sysmon
+
+min_ludus_version: "2.0.0"
