@@ -4,8 +4,7 @@
 roles:
   # ADCS role — all ESC attack path templates (ESC1-16)
   - name: badsectorlabs.ludus_adcs
-    src: https://github.com/badsectorlabs/ludus_adcs
-    version: main
+  - name: badsectorlabs.ludus_mssql
 
 collections:
   # Windows utils collection — all AD/Windows utility roles
@@ -15,4 +14,3 @@ collections:
   #   ludus_ad_gmsa, ludus_ad_forest_trust
   # Install with: ludus ansible collection add badsectorlabs.ludus_windows_utils
   - name: badsectorlabs.ludus_windows_utils
-    version: ">=1.1.35"

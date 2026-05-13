@@ -1,6 +1,6 @@
 # Bad Sector Labs — Ludus Range Configs
 
-A [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources) shipping production-ready blueprints for offensive security labs. Add the source once, then apply any blueprint to spin up a fully configured range in one step.
+A [Ludus source](https://gitlab.com/badsectorlabs/ludus-source-template) is a versioned bundle of Packer templates, Ansible roles, and blueprints, served from a git repo, tarball, or local directory
 
 ```bash
 ludus source add https://github.com/badsectorlabs/ludus-range-configs
@@ -24,7 +24,7 @@ ludus source add https://github.com/badsectorlabs/ludus-range-configs
 # List available blueprints
 ludus blueprint list
 
-# Apply a blueprint and deploy
+# Apply a blueprint to your DEFAULT range (specific -r if you want to apply the blueprint to a different range ID) and deploy
 ludus blueprint apply ludus-range-configs/goad
 ludus range deploy
 

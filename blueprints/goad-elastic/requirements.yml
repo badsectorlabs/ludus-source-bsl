@@ -4,16 +4,14 @@
 roles:
   # Elastic container — deploys Elasticsearch + Kibana + Fleet on Linux
   - name: badsectorlabs.ludus_elastic_container
-    src: https://github.com/badsectorlabs/ludus_elastic_container
-    version: main
 
   # Elastic agent — deploys agent + optional Sysmon to Windows/Linux endpoints
   - name: badsectorlabs.ludus_elastic_agent
-    src: https://github.com/badsectorlabs/ludus_elastic_agent
-    version: main
+
+  - name: badsectorlabs.ludus_adcs
+  - name: badsectorlabs.ludus_mssql
 
 collections:
   # Windows utils collection — all AD/Windows utility roles
   # Install with: ludus ansible collection add badsectorlabs.ludus_windows_utils
   - name: badsectorlabs.ludus_windows_utils
-    version: ">=1.1.35"
