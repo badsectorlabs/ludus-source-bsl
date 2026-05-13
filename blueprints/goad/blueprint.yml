@@ -2,13 +2,11 @@ manifest_version: 1
 id: goad
 name: "Game of Active Directory (GOAD)"
 description: >
-  Multi-domain, multi-forest Active Directory attack lab based on Orange Cyberdefense's GOAD.
-  Three domains across two forests: sevenkingdoms.local (forest root + north child domain)
-  and essos.local (separate forest with bidirectional trust). Features ADCS with all ESC
-  attack paths (ESC1-16), MSSQL with impersonation and linked servers, LAPS, IIS WebDAV,
-  gMSA, anonymous RPC, child domain trusts, and dozens of AD misconfigurations including
-  the full upstream GOAD ACL attack chain. All badsectorlabs.ludus_windows_utils roles
-  exercised. Includes Kali Linux attacker box.
+  Multi-forest AD attack lab based on GOAD. Three domains, two forests:
+  sevenkingdoms.local (forest root + north child) and essos.local
+  (bidirectional trust). ADCS (ESC1-16), MSSQL impersonation/linked
+  servers, LAPS, WebDAV, gMSA, full GOAD ACL attack chain. All
+  ludus_windows_utils roles exercised. Includes Kali attacker box.
 version: 1.1.35
 config: range-config.yml
 

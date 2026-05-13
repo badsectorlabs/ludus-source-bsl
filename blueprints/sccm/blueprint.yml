@@ -2,12 +2,11 @@ manifest_version: 1
 id: sccm
 name: "SCCM / MECM Hierarchy Lab"
 description: >
-  Full three-tiered Microsoft Configuration Manager (SCCM/MECM) hierarchy lab.
-  Central Administration Site (CAS), child Primary Site (PS1) with all site system
-  roles on dedicated servers, a passive site server for HA testing, and a Secondary
-  Site — 13 Windows VMs total across 2 VLANs, all domain-joined and auto-enrolled
-  as SCCM clients. Vulnerable to nearly all Misconfiguration Manager attack techniques.
-  Built on mayyhem.ludus_sccm, extending the original Synzack/kernel-sanders project.
+  Full three-tiered SCCM/MECM hierarchy lab: CAS, child Primary Site
+  with all roles on dedicated servers, passive site server for HA, and
+  Secondary Site — 13 Windows VMs across 2 VLANs, all domain-joined
+  and auto-enrolled as clients. Vulnerable to nearly all Misconfiguration
+  Manager attack techniques. Built on mayyhem.ludus_sccm.
 version: 1.0.0
 config: range-config.yml
 
