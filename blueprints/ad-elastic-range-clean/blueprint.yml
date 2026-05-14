@@ -1,0 +1,24 @@
+manifest_version: 1
+id: ad-elastic-range-clean
+name: "Clean AD + Elastic Baseline"
+description: >
+  A hardened, vulnerability-free Active Directory environment with full Elastic
+  Security telemetry. One forest root domain (corp.local) with a child domain
+  (sub.corp.local), a Windows 11 workstation, a dedicated Elastic SIEM/Fleet
+  server, and a Kali box. Strong password policies, no intentional
+  misconfigurations. Elastic Agent and Sysmon on every Windows VM.
+  Intended as a clean baseline for detection engineering, tooling
+  development, and training environments.
+version: 0.1.0
+config: range-config.yml
+
+tags:
+  - active-directory
+  - elastic
+  - siem
+  - windows
+  - baseline
+  - sysmon
+  - detection
+
+min_ludus_version: "2.0.0"

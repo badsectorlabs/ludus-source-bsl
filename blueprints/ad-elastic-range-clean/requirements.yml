@@ -1,0 +1,18 @@
+# requirements.yml: pinned role sources for the ad-elastic-range-clean blueprint.
+# Only off-galaxy or version-pinned roles are listed here.
+# badsectorlabs.ludus_windows_utils is a Galaxy collection — no src needed.
+
+roles:
+  # Elastic container — Elasticsearch + Kibana + Fleet on Debian
+  - name: badsectorlabs.ludus_elastic_container
+    src: https://github.com/badsectorlabs/ludus_elastic_container
+    version: main
+
+  # Elastic agent — deploys agent + optional Sysmon to Windows endpoints
+  - name: badsectorlabs.ludus_elastic_agent
+    src: https://github.com/badsectorlabs/ludus_elastic_agent
+    version: main
+
+  # Windows utils collection — AD password policy, bulk content roles
+  - name: badsectorlabs.ludus_windows_utils
+    version: ">=1.2.0"

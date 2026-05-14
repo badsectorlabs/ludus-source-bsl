@@ -1,0 +1,330 @@
+# yaml-language-server: $schema=https://docs.ludus.cloud/schemas/range-config.json
+# =============================================================================
+# AD + Elastic — Clean Baseline Range
+# =============================================================================
+# A hardened, vulnerability-free Active Directory environment with full Elastic
+# Security telemetry. Intended as a baseline lab for detection engineering,
+# tooling development, and training — NOT an attack lab.
+#
+# Topology:
+#   VLAN 10 — Forest root domain:  ludus.local
+#               DC01   (primary-dc)
+#   VLAN 11 — Child domain:        sub.ludus.local
+#               DC02   (primary-dc of child domain)
+#               WS01   (Win11 workstation, child domain member)
+#   VLAN 20 — Security tooling
+#               elastic (Debian 12 — Elastic SIEM + Fleet)
+#   VLAN 99 — Attacker
+#               kali
+#
+# Security posture (NO intentional vulnerabilities):
+#   - Strong password policy on both domains (14-char min, complexity, lockout)
+#   - Standard domain users and groups — no excessive privilege, no weak SPNs
+#   - Elastic Agent + Sysmon on every Windows VM for full telemetry
+#   - All Windows VMs: testing.snapshot=true, block_internet=true
+#   - Kali:            testing.snapshot=false, block_internet=false
+#   - Elastic server:  testing.snapshot=false, block_internet=false
+#     (needs internet to pull container images on first deploy)
+#
+# Deploy order:
+#   1. elastic      — Fleet server up, enrollment token written
+#   2. DC01         — ludus.local forest root provisioned
+#   3. DC02         — sub.ludus.local child domain promoted (Ludus-native)
+#   4. WS01         — joins sub.ludus.local, elastic agent enrolled
+#   5. Agents       — all Windows VMs enroll via depends_on elastic
+#
+# Estimated deploy time: ~40–55 minutes
+# RAM required: ~28 GB
+#   elastic 8 + DC01 6 + DC02 6 + WS01 6 + kali 2
+# =============================================================================
+
+network:
+  inter_vlan_default: DROP
+  rules:
+    # AD inter-domain traffic — DCs need to talk to each other
+    - name: Allow ludus.local DC to child DC
+      vlan_src: 10
+      vlan_dst: 11
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow child DC to ludus.local DC
+      vlan_src: 11
+      vlan_dst: 10
+      protocol: all
+      ports: all
+      action: ACCEPT
+    # Windows VMs to Elastic (agent enrollment + log shipping)
+    - name: Allow AD network to Elastic
+      vlan_src: 10
+      vlan_dst: 20
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow child network to Elastic
+      vlan_src: 11
+      vlan_dst: 20
+      protocol: all
+      ports: all
+      action: ACCEPT
+    # Kali full access to everything (attacker box)
+    - name: Allow Kali to AD network
+      vlan_src: 99
+      vlan_dst: 10
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow Kali to child network
+      vlan_src: 99
+      vlan_dst: 11
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow Kali to Elastic
+      vlan_src: 99
+      vlan_dst: 20
+      protocol: all
+      ports: all
+      action: ACCEPT
+
+ludus:
+  # ===========================================================================
+  # elastic — Debian 12, VLAN 20
+  # Elastic Container Project: Elasticsearch + Kibana + Fleet Server
+  # Kibana:       https://10.X.20.2:5601   (elastic / see role_vars)
+  # Fleet server: https://10.X.20.2:8220
+  # Needs internet access to pull container images on first deploy.
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-elastic"
+    hostname: "{{ range_id }}-elastic"
+    template: debian-12-x64-server-template
+    vlan: 20
+    ip_last_octet: 2
+    ram_gb: 8
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
+    roles:
+      - name: badsectorlabs.ludus_elastic_container
+    role_vars:
+      ludus_elastic_password: "ElasticS3cur3!"
+      ludus_elastic_stack_version: "9.3.1"
+
+  # ===========================================================================
+  # DC01 — ludus.local Forest Root Primary DC, VLAN 10
+  # Responsible for: forest root, parent domain users/groups/OUs,
+  # strong password policy, Elastic Agent telemetry.
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-DC01"
+    hostname: "{{ range_id }}-DC01"
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 10
+    ram_gb: 6
+    cpus: 4
+    windows:
+      sysprep: false
+      gpos:
+        - disable_defender
+    domain:
+      fqdn: ludus.local
+      role: primary-dc
+    testing:
+      snapshot: true
+      block_internet: true
+    roles:
+      # Strong password policy — no intentional weaknesses
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_password_policy
+      # Minimal, realistic AD population — IT staff + service accounts
+      - name: badsectorlabs.ludus_windows_utils.ludus_bulk_ad_content
+      # Elastic Agent enrolled after Fleet server is ready
+      - name: badsectorlabs.ludus_elastic_agent
+        depends_on:
+          - vm_name: "{{ range_id }}-elastic"
+            role: badsectorlabs.ludus_elastic_container
+    role_vars:
+      # Strong policy — 14-char min, complexity required, lockout after 5
+      ludus_password_policy_min_length: 14
+      ludus_password_policy_complexity: true
+      ludus_password_policy_min_age_days: 1
+      ludus_password_policy_max_age_days: 90
+      ludus_password_policy_history_count: 24
+      ludus_password_policy_lockout_threshold: 5
+      ludus_password_policy_lockout_duration_minutes: 30
+      ludus_password_policy_lockout_window_minutes: 30
+
+      # Minimal AD content — IT OU, standard groups, domain admin + regular user
+      ludus_ad_content_mode: custom
+      ludus_organisation_units:
+        - name: IT
+          path: "DC=ludus,DC=local"
+        - name: Service Accounts
+          path: "DC=ludus,DC=local"
+        - name: Workstations
+          path: "DC=ludus,DC=local"
+        - name: Servers
+          path: "DC=ludus,DC=local"
+      ludus_groups:
+        global:
+          - name: IT-Admins
+            path: "OU=IT,DC=ludus,DC=local"
+          - name: Help-Desk
+            path: "OU=IT,DC=ludus,DC=local"
+        domainlocal: []
+        universal: []
+      ludus_users:
+        - name: ludus.admin
+          firstname: Ludus
+          lastname: Admin
+          password: "LudusAdm1n$ecure!"
+          path: "OU=IT,DC=ludus,DC=local"
+          groups:
+            - Domain Admins
+            - IT-Admins
+          password_never_expires: true
+        - name: ludus.user
+          firstname: Ludus
+          lastname: User
+          password: "LudusUs3r$ecure!"
+          path: "OU=IT,DC=ludus,DC=local"
+          groups:
+            - Help-Desk
+          password_never_expires: false
+        - name: svc.monitoring
+          firstname: Monitoring
+          lastname: Service
+          password: "M0n1t0r$vc_Secure!"
+          path: "OU=Service Accounts,DC=ludus,DC=local"
+          groups: []
+          password_never_expires: true
+
+      # Elastic Agent with Sysmon for Windows telemetry
+      ludus_elastic_agent_version: "9.3.1"
+      ludus_elastic_install_sysmon: true
+
+  # ===========================================================================
+  # DC02 — sub.ludus.local Child Domain Primary DC, VLAN 11
+  # Promoted via Ludus-native domain provisioning (no custom role needed).
+  # Responsible for: child domain, child users/groups/OUs, strong password
+  # policy, Elastic Agent telemetry.
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-DC02"
+    hostname: "{{ range_id }}-DC02"
+    template: win2022-server-x64-template
+    vlan: 11
+    ip_last_octet: 10
+    ram_gb: 6
+    cpus: 4
+    windows:
+      sysprep: true
+      gpos:
+        - disable_defender
+    domain:
+      fqdn: sub.ludus.local
+      role: primary-dc
+    testing:
+      snapshot: true
+      block_internet: true
+    roles:
+      # Strong password policy on child domain
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_password_policy
+      # Minimal AD content for the child domain
+      - name: badsectorlabs.ludus_windows_utils.ludus_bulk_ad_content
+      # Elastic Agent enrolled after Fleet server is ready
+      - name: badsectorlabs.ludus_elastic_agent
+        depends_on:
+          - vm_name: "{{ range_id }}-elastic"
+            role: badsectorlabs.ludus_elastic_container
+    role_vars:
+      # Same strong policy for the child domain
+      ludus_password_policy_min_length: 14
+      ludus_password_policy_complexity: true
+      ludus_password_policy_min_age_days: 1
+      ludus_password_policy_max_age_days: 90
+      ludus_password_policy_history_count: 24
+      ludus_password_policy_lockout_threshold: 5
+      ludus_password_policy_lockout_duration_minutes: 30
+      ludus_password_policy_lockout_window_minutes: 30
+
+      # Minimal child domain AD content
+      ludus_ad_content_mode: custom
+      ludus_organisation_units:
+        - name: Sub-IT
+          path: "DC=sub,DC=ludus,DC=local"
+        - name: Sub-Workstations
+          path: "DC=sub,DC=ludus,DC=local"
+      ludus_groups:
+        global:
+          - name: Sub-IT-Admins
+            path: "OU=Sub-IT,DC=sub,DC=ludus,DC=local"
+        domainlocal: []
+        universal: []
+      ludus_users:
+        - name: sub.admin
+          firstname: Sub
+          lastname: Admin
+          password: "SubAdm1n$ecure!"
+          path: "OU=Sub-IT,DC=sub,DC=ludus,DC=local"
+          groups:
+            - Domain Admins
+            - Sub-IT-Admins
+          password_never_expires: true
+        - name: sub.user
+          firstname: Sub
+          lastname: User
+          password: "SubUs3r$ecure!"
+          path: "OU=Sub-IT,DC=sub,DC=ludus,DC=local"
+          groups: []
+          password_never_expires: false
+
+      # Elastic Agent with Sysmon
+      ludus_elastic_agent_version: "9.3.1"
+      ludus_elastic_install_sysmon: true
+
+  # ===========================================================================
+  # WS01 — Windows 11 Workstation, VLAN 11 (sub.ludus.local member)
+  # Standard domain-joined workstation — no vulnerabilities, full telemetry.
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-WS01"
+    hostname: "{{ range_id }}-WS01"
+    template: win11-22h2-x64-enterprise-template
+    vlan: 11
+    ip_last_octet: 20
+    ram_gb: 6
+    cpus: 4
+    windows:
+      sysprep: true
+    domain:
+      fqdn: sub.ludus.local
+      role: member
+    testing:
+      snapshot: true
+      block_internet: true
+    roles:
+      # Elastic Agent enrolled after Fleet server is ready
+      - name: badsectorlabs.ludus_elastic_agent
+        depends_on:
+          - vm_name: "{{ range_id }}-elastic"
+            role: badsectorlabs.ludus_elastic_container
+    role_vars:
+      # Elastic Agent with Sysmon on the workstation
+      ludus_elastic_agent_version: "9.3.1"
+      ludus_elastic_install_sysmon: true
+
+  # ===========================================================================
+  # kali — Attacker / Analyst Box, VLAN 99
+  # Internet access retained — used for tool updates and external research.
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-kali"
+    hostname: "{{ range_id }}-kali"
+    template: kali-x64-desktop-template
+    vlan: 99
+    ip_last_octet: 1
+    ram_gb: 4
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
