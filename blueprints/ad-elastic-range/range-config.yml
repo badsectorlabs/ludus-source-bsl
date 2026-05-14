@@ -1,0 +1,567 @@
+# yaml-language-server: $schema=https://docs.ludus.cloud/schemas/range-config.json
+# =============================================================================
+# AD + Elastic Security Range — Star Wars themed
+# =============================================================================
+#
+# Domains:
+#   galactic.empire         — forest root DC (hoth)
+#   rebel.galactic.empire   — child domain DC (coruscant)
+#
+# Topology:
+#   VLAN 10 — AD network
+#     hoth       (DC01)  — galactic.empire primary DC + ADCS CA (ESC1, ESC8)
+#     coruscant  (SRV01) — rebel.galactic.empire child domain DC
+#     mustafar   (SRV02) — MSSQL server (galactic.empire member)
+#     tatooine   (SRV03) — MSSQL server (rebel.galactic.empire member)
+#   VLAN 20 — Security tooling
+#     elastic            — Elasticsearch + Kibana + Fleet Server (Debian 12)
+#   VLAN 99 — Attack network
+#     kali               — attacker box
+#
+# Attack surface:
+#   - ADCS ESC1 (enrollee-supplied SAN) and ESC8 (NTLM relay to HTTP enrollment)
+#   - MSSQL: SA enabled, xp_cmdshell, impersonation chains, cross-domain linked server
+#   - Kerberoasting: moff.gideon, svc.deathstar, han.solo, svc.rebel
+#   - AS-REP roasting: agent.kallus
+#   - ACL abuse: bounty.hunter GenericAll on Imperial Command group
+#   - LLMNR + NBT-NS poisoning, SMB signing disabled, Print Spooler + WebClient
+#   - MachineAccountQuota = 10, LDAP signing disabled
+#
+# Elastic coverage:
+#   - Elastic Agent + Sysmon on every Windows VM and the elastic server itself
+#   - All telemetry ships to Fleet at https://10.X.20.2:8220
+#
+# Estimated deploy time: ~60–75 minutes
+# RAM required: ~46 GB
+# =============================================================================
+
+network:
+  inter_vlan_default: ACCEPT
+  rules:
+    - name: Allow AD network to Security tooling
+      vlan_src: 10
+      vlan_dst: 20
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow Security tooling to AD network
+      vlan_src: 20
+      vlan_dst: 10
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow Kali to AD network
+      vlan_src: 99
+      vlan_dst: 10
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow AD network to Kali
+      vlan_src: 10
+      vlan_dst: 99
+      protocol: all
+      ports: all
+      action: ACCEPT
+    - name: Allow Kali to Security tooling
+      vlan_src: 99
+      vlan_dst: 20
+      protocol: all
+      ports: all
+      action: ACCEPT
+
+ludus:
+
+  # ===========================================================================
+  # elastic — Debian 12, VLAN 20
+  # Elasticsearch + Kibana + Fleet Server
+  # Kibana:       https://10.X.20.2:5601   elastic / ImperialFleet!
+  # Fleet Server: https://10.X.20.2:8220
+  # Also runs Elastic Agent to monitor the server itself
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-elastic"
+    hostname: "{{ range_id }}-elastic"
+    template: debian-12-x64-server-template
+    vlan: 20
+    ip_last_octet: 2
+    ram_gb: 8
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false
+    roles:
+      - name: badsectorlabs.ludus_elastic_container
+      # Elastic Agent on the elastic server itself — Linux support confirmed
+      - name: badsectorlabs.ludus_elastic_agent
+        depends_on:
+          - vm_name: "{{ range_id }}-elastic"
+            role: badsectorlabs.ludus_elastic_container
+    role_vars:
+      ludus_elastic_password: "ImperialFleet!"
+      ludus_elastic_stack_version: "9.3.1"
+      ludus_elastic_agent_version: "9.3.1"
+      ludus_elastic_install_sysmon: false   # Linux — no Sysmon
+
+  # ===========================================================================
+  # hoth — galactic.empire Forest Root Primary DC, VLAN 10
+  # ADCS Certificate Authority: ESC1 + ESC8 only (all others disabled)
+  # Users, groups, OUs, password policy, ACLs, misconfigs
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-DC01"
+    hostname: hoth
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 10
+    ram_gb: 6
+    cpus: 4
+    windows:
+      sysprep: false
+      gpos:
+        - disable_defender
+    domain:
+      fqdn: galactic.empire
+      role: primary-dc
+    roles:
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_password_policy
+      - name: badsectorlabs.ludus_windows_utils.ludus_bulk_ad_content
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_acls
+        depends_on:
+          - vm_name: "{{ range_id }}-SRV02"
+            role: badsectorlabs.ludus_windows_utils.ludus_child_domain_join
+      # ADCS — ESC1 (SAN abuse) and ESC8 (NTLM relay to enrollment) only
+      - name: badsectorlabs.ludus_adcs
+        depends_on:
+          - vm_name: "{{ range_id }}-SRV02"
+            role: badsectorlabs.ludus_windows_utils.ludus_child_domain_join
+      - name: badsectorlabs.ludus_elastic_agent
+        depends_on:
+          - vm_name: "{{ range_id }}-elastic"
+            role: badsectorlabs.ludus_elastic_container
+    role_vars:
+      # Weak password policy — short passwords for crack-ability
+      ludus_password_policy_mode: custom
+      ludus_password_policy_min_length: 8
+      ludus_password_policy_complexity: false
+      ludus_password_policy_lockout_threshold: 0
+
+      # AD content — Star Wars Imperial theme
+      ludus_ad_content_mode: custom
+      ludus_organisation_units:
+        - name: Imperial Command
+          path: "DC=galactic,DC=empire"
+        - name: Death Star
+          path: "DC=galactic,DC=empire"
+        - name: Intelligence
+          path: "DC=galactic,DC=empire"
+        - name: Fleet
+          path: "DC=galactic,DC=empire"
+        - name: Outer Rim
+          path: "DC=galactic,DC=empire"
+        - name: Service Accounts
+          path: "DC=galactic,DC=empire"
+        - name: Workstations
+          path: "DC=galactic,DC=empire"
+      ludus_groups:
+        global:
+          - name: Imperial Command
+            path: "OU=Imperial Command,DC=galactic,DC=empire"
+          - name: Death Star Crew
+            path: "OU=Death Star,DC=galactic,DC=empire"
+          - name: Imperial Intelligence
+            path: "OU=Intelligence,DC=galactic,DC=empire"
+          - name: Imperial Fleet
+            path: "OU=Fleet,DC=galactic,DC=empire"
+          - name: Outer Rim Enforcers
+            path: "OU=Outer Rim,DC=galactic,DC=empire"
+        domainlocal: []
+        universal: []
+      ludus_users:
+        # Domain Admins — high-value targets
+        - name: darth.vader
+          firstname: Darth
+          lastname: Vader
+          password: "Th3F0rce!"
+          path: "OU=Imperial Command,DC=galactic,DC=empire"
+          groups:
+            - Domain Admins
+            - Imperial Command
+          password_never_expires: true
+        - name: emperor.palpatine
+          firstname: Emperor
+          lastname: Palpatine
+          password: "Ord3r66!"
+          path: "OU=Imperial Command,DC=galactic,DC=empire"
+          groups:
+            - Domain Admins
+            - Imperial Command
+          password_never_expires: true
+        # Regular privileged user — ACL attack path target
+        - name: grand.moff.tarkin
+          firstname: Grand Moff
+          lastname: Tarkin
+          password: "D3athStar1"
+          path: "OU=Imperial Command,DC=galactic,DC=empire"
+          groups:
+            - Imperial Command
+            - Death Star Crew
+          password_never_expires: true
+        # Kerberoastable — MSSQLSvc SPN set directly on the user object
+        - name: svc.deathstar
+          firstname: SVC
+          lastname: DeathStar
+          password: "Sup3rL4ser!"
+          path: "OU=Service Accounts,DC=galactic,DC=empire"
+          groups:
+            - Death Star Crew
+          password_never_expires: true
+          spns:
+            - "MSSQLSvc/mustafar.galactic.empire:1433"
+            - "MSSQLSvc/mustafar.galactic.empire"
+        # Kerberoastable — explicit SPN for lateral movement practice
+        - name: moff.gideon
+          firstname: Moff
+          lastname: Gideon
+          password: "Mand4lorian!"
+          path: "OU=Fleet,DC=galactic,DC=empire"
+          groups:
+            - Imperial Fleet
+          password_never_expires: true
+          spns:
+            - "HTTP/fleet.galactic.empire"
+            - "HTTP/fleet"
+        # AS-REP roastable — set via ludus_ad_misconfigs asrep list
+        - name: agent.kallus
+          firstname: Agent
+          lastname: Kallus
+          password: "R3bels!"
+          path: "OU=Intelligence,DC=galactic,DC=empire"
+          groups:
+            - Imperial Intelligence
+          password_never_expires: true
+        # ACL attacker — GenericAll on Imperial Command (set via ludus_ad_acls)
+        - name: bounty.hunter
+          firstname: Bounty
+          lastname: Hunter
+          password: "Carbonite1!"
+          path: "OU=Outer Rim,DC=galactic,DC=empire"
+          groups:
+            - Outer Rim Enforcers
+          password_never_expires: true
+
+      # Misconfigurations on the DC itself
+      ludus_misconfigs_mode: custom
+      ludus_firewall_disabled: true
+      ludus_llmnr_enabled: true
+      ludus_nbt_ns_enabled: true
+      ludus_smb_signing_disabled: true
+      ludus_print_spooler_enabled: true
+      ludus_ldap_signing_disabled: true
+      ludus_machine_account_quota_enabled: true
+      ludus_machine_account_quota_value: 10
+      # AS-REP roasting — agent.kallus has no Kerberos pre-auth
+      ludus_asrep_roast_users:
+        - name: "agent.kallus"
+          domain: "galactic.empire"
+
+      # ACL attack paths
+      ludus_ad_acl_mode: custom
+      ludus_ad_acl_become_user: "GALACTIC\\darth.vader"
+      ludus_ad_acl_become_password: "Th3F0rce!"
+      ludus_ad_acl_entries:
+        # bounty.hunter GenericAll on Imperial Command → add self → DA path
+        - principal: "bounty.hunter"
+          target: "Imperial Command"
+          target_type: "group"
+          right: "GenericAll"
+        # agent.kallus can ForceChangePassword on grand.moff.tarkin
+        - principal: "agent.kallus"
+          target: "grand.moff.tarkin"
+          right: "ForceChangePassword"
+
+      # ADCS — ESC1 and ESC8 only; all other ESCs explicitly disabled
+      ludus_adcs_esc1: true    # Enrollee supplies SAN — any cert for any user
+      ludus_adcs_esc2: false
+      ludus_adcs_esc3: false
+      ludus_adcs_esc3_cra: false
+      ludus_adcs_esc4: false
+      ludus_adcs_esc5: false
+      ludus_adcs_esc6: false
+      ludus_adcs_esc7: false
+      ludus_adcs_esc8: true    # NTLM relay to HTTP enrollment endpoint
+      ludus_adcs_esc9: false
+      ludus_adcs_esc10: false
+      ludus_adcs_esc11: false
+      ludus_adcs_esc13: false
+      ludus_adcs_esc14: false
+      ludus_adcs_esc15: false
+      ludus_adcs_esc16: false
+
+      ludus_elastic_install_sysmon: true
+      ludus_elastic_agent_version: "9.3.1"
+
+  # ===========================================================================
+  # coruscant — rebel.galactic.empire Child Domain DC, VLAN 10
+  # Child domain of galactic.empire
+   # Rebel Alliance users and groups
+   # ===========================================================================
+  - vm_name: "{{ range_id }}-SRV01"
+    hostname: coruscant
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 11
+    ram_gb: 4
+    cpus: 4
+    windows:
+      sysprep: true
+    # domain: block registers this VM with Ludus as the primary-dc for rebel.galactic.empire
+    # Ludus handles child DC promotion natively — no ludus_child_domain role needed
+    domain:
+      fqdn: rebel.galactic.empire
+      role: primary-dc
+    roles:
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_password_policy
+      - name: badsectorlabs.ludus_windows_utils.ludus_bulk_ad_content
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_elastic_agent
+        depends_on:
+          - vm_name: "{{ range_id }}-elastic"
+            role: badsectorlabs.ludus_elastic_container
+    role_vars:
+      # Weak password policy for the child domain
+      ludus_password_policy_mode: custom
+      ludus_password_policy_min_length: 8
+      ludus_password_policy_complexity: false
+      ludus_password_policy_lockout_threshold: 0
+
+      # AD content — Rebel Alliance theme
+      ludus_ad_content_mode: custom
+      ludus_organisation_units:
+        - name: Rebel Alliance
+          path: "DC=rebel,DC=galactic,DC=empire"
+        - name: Pilots
+          path: "DC=rebel,DC=galactic,DC=empire"
+        - name: Jedi Order
+          path: "DC=rebel,DC=galactic,DC=empire"
+        - name: Service Accounts
+          path: "DC=rebel,DC=galactic,DC=empire"
+      ludus_groups:
+        global:
+          - name: Rebel Alliance
+            path: "OU=Rebel Alliance,DC=rebel,DC=galactic,DC=empire"
+          - name: Rogue Squadron
+            path: "OU=Pilots,DC=rebel,DC=galactic,DC=empire"
+          - name: Jedi Order
+            path: "OU=Jedi Order,DC=rebel,DC=galactic,DC=empire"
+        domainlocal: []
+        universal: []
+      ludus_users:
+        - name: luke.skywalker
+          firstname: Luke
+          lastname: Skywalker
+          password: "Us3TheF0rce!"
+          path: "OU=Jedi Order,DC=rebel,DC=galactic,DC=empire"
+          groups:
+            - Domain Admins
+            - Jedi Order
+          password_never_expires: true
+        - name: han.solo
+          firstname: Han
+          lastname: Solo
+          password: "Kessel_Run12!"
+          path: "OU=Pilots,DC=rebel,DC=galactic,DC=empire"
+          groups:
+            - Rogue Squadron
+          password_never_expires: true
+        - name: princess.leia
+          firstname: Princess
+          lastname: Leia
+          password: "Alderaan1!"
+          path: "OU=Rebel Alliance,DC=rebel,DC=galactic,DC=empire"
+          groups:
+            - Rebel Alliance
+          password_never_expires: true
+        - name: svc.rebel
+          firstname: SVC
+          lastname: Rebel
+          password: "R3sistance!"
+          path: "OU=Service Accounts,DC=rebel,DC=galactic,DC=empire"
+          groups: []
+          password_never_expires: true
+          spns:
+            - "MSSQLSvc/tatooine.rebel.galactic.empire:1433"
+            - "MSSQLSvc/tatooine.rebel.galactic.empire"
+
+      # Misconfigurations on child DC
+      ludus_misconfigs_mode: custom
+      ludus_firewall_disabled: true
+      ludus_smb_signing_disabled: true
+      ludus_print_spooler_enabled: true
+      ludus_llmnr_enabled: true
+      ludus_nbt_ns_enabled: true
+      # han.solo is Kerberoastable — SPN set via mssql role on tatooine
+      ludus_asrep_roast_users: []
+
+      ludus_elastic_install_sysmon: true
+      ludus_elastic_agent_version: "9.3.1"
+
+  # ===========================================================================
+  # mustafar — galactic.empire Member Server, VLAN 10
+  # MSSQL Server with impersonation, xp_cmdshell, linked server to tatooine
+  # svc.deathstar = sysadmin, grand.moff.tarkin can impersonate SA
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-SRV02"
+    hostname: mustafar
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 12
+    ram_gb: 4
+    cpus: 2
+    windows:
+      sysprep: true
+    domain:
+      fqdn: galactic.empire
+      role: member
+    roles:
+      # Domain join depends on DC01 misconfigs completing
+      - name: badsectorlabs.ludus_windows_utils.ludus_child_domain_join
+        depends_on:
+          - vm_name: "{{ range_id }}-DC01"
+            role: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_mssql
+      - name: badsectorlabs.ludus_elastic_agent
+        depends_on:
+          - vm_name: "{{ range_id }}-elastic"
+            role: badsectorlabs.ludus_elastic_container
+    role_vars:
+      # Domain join
+      ludus_child_domain_fqdn: galactic.empire
+      ludus_child_dc_ip: 10.{{ range_second_octet }}.10.10
+      ludus_child_dc_hostname: hoth
+      ludus_parent_domain_fqdn: galactic.empire
+
+      # Misconfigurations on mustafar
+      ludus_misconfigs_mode: custom
+      ludus_firewall_disabled: true
+      ludus_smb_signing_disabled: true
+      ludus_webclient_enabled: true
+      ludus_print_spooler_enabled: true
+
+      # MSSQL misconfigurations — multiple attack paths
+      ludus_mssql_enable_tcp: true
+      ludus_mssql_mixed_mode_auth: true
+      ludus_mssql_install_ssms: false
+      ludus_mssql_fix_dotnet_config: true
+      ludus_mssql_enable_sa: true
+      ludus_mssql_sa_password: "D34thStar_SA!"
+      ludus_mssql_enable_xp_cmdshell: true
+      # Service runs under default NT AUTHORITY\Network Service
+      # svc.deathstar Kerberoastable via MSSQLSvc SPN set on the user object in bulk_ad_content
+      # Domain logins — svc.deathstar as sysadmin
+      ludus_mssql_sysadmins:
+        - "GALACTIC\\svc.deathstar"
+        - "GALACTIC\\darth.vader"
+      # Login impersonation — grand.moff.tarkin can EXECUTE AS SA
+      ludus_mssql_impersonations:
+        - grantor: "sa"
+          grantee: "GALACTIC\\grand.moff.tarkin"
+      # Linked server to tatooine — cross-domain lateral movement
+      # svc.deathstar maps to SA on tatooine
+      ludus_mssql_linked_servers:
+        - name: TATOOINE
+          data_source: tatooine.rebel.galactic.empire
+          user_mappings:
+            - local_login: "GALACTIC\\svc.deathstar"
+              remote_user: sa
+              remote_password: "Reb3l_SA!"
+
+      ludus_elastic_install_sysmon: true
+      ludus_elastic_agent_version: "9.3.1"
+
+  # ===========================================================================
+  # tatooine — rebel.galactic.empire Member Server, VLAN 10
+  # MSSQL Server — svc.rebel sysadmin, princess.leia impersonates SA
+  # Linked server back to mustafar (bidirectional)
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-SRV03"
+    hostname: tatooine
+    template: win2022-server-x64-template
+    vlan: 10
+    ip_last_octet: 13
+    ram_gb: 4
+    cpus: 2
+    windows:
+      sysprep: true
+    domain:
+      fqdn: rebel.galactic.empire
+      role: member
+    roles:
+      # Domain join to child domain — depends on coruscant completing
+      - name: badsectorlabs.ludus_windows_utils.ludus_child_domain_join
+        depends_on:
+          - vm_name: "{{ range_id }}-SRV01"
+            role: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_windows_utils.ludus_ad_misconfigs
+      - name: badsectorlabs.ludus_mssql
+      - name: badsectorlabs.ludus_elastic_agent
+        depends_on:
+          - vm_name: "{{ range_id }}-elastic"
+            role: badsectorlabs.ludus_elastic_container
+    role_vars:
+      # Domain join — child domain (rebel.galactic.empire)
+      ludus_child_domain_fqdn: rebel.galactic.empire
+      ludus_child_dc_ip: 10.{{ range_second_octet }}.10.11
+      ludus_child_dc_hostname: coruscant
+      ludus_parent_domain_fqdn: rebel.galactic.empire
+
+      # Misconfigurations on tatooine
+      ludus_misconfigs_mode: custom
+      ludus_firewall_disabled: true
+      ludus_smb_signing_disabled: true
+      ludus_webclient_enabled: true
+      ludus_print_spooler_enabled: true
+
+      # MSSQL misconfigurations
+      ludus_mssql_enable_tcp: true
+      ludus_mssql_mixed_mode_auth: true
+      ludus_mssql_install_ssms: false
+      ludus_mssql_fix_dotnet_config: true
+      ludus_mssql_enable_sa: true
+      ludus_mssql_sa_password: "Reb3l_SA!"
+      ludus_mssql_enable_xp_cmdshell: true
+      # Service runs under default NT AUTHORITY\Network Service
+      # svc.rebel Kerberoastable via MSSQLSvc SPN set on the user object in bulk_ad_content
+      ludus_mssql_sysadmins:
+        - "REBEL\\svc.rebel"
+        - "REBEL\\luke.skywalker"
+      # princess.leia can EXECUTE AS SA
+      ludus_mssql_impersonations:
+        - grantor: "sa"
+          grantee: "REBEL\\princess.leia"
+      # Linked server back to mustafar
+      ludus_mssql_linked_servers:
+        - name: MUSTAFAR
+          data_source: mustafar.galactic.empire
+          user_mappings:
+            - local_login: "REBEL\\svc.rebel"
+              remote_user: sa
+              remote_password: "D34thStar_SA!"
+
+      ludus_elastic_install_sysmon: true
+      ludus_elastic_agent_version: "9.3.1"
+
+  # ===========================================================================
+  # kali — Attacker Box, VLAN 99
+  # ===========================================================================
+  - vm_name: "{{ range_id }}-kali"
+    hostname: "{{ range_id }}-kali"
+    template: kali-x64-desktop-template
+    vlan: 99
+    ip_last_octet: 1
+    ram_gb: 4
+    cpus: 4
+    linux: true
+    testing:
+      snapshot: false
+      block_internet: false

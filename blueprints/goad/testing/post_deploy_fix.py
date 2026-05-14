@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) Bad Sector Labs — https://github.com/badsectorlabs/ludus-range-configs
 """
 GOAD Post-Deploy Idempotency Verifier
 ======================================

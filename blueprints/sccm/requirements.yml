@@ -1,6 +1,4 @@
-# requirements.yml: pinned collection versions for the SCCM blueprint.
+# requirements.yml: dependencies for the SCCM blueprint.
 
 collections:
-  # SCCM/MECM hierarchy collection — deploys full CAS + Primary + Secondary site
-  # Install manually: ludus ansible collection add https://github.com/Mayyhem/ludus_sccm
   - name: mayyhem.ludus_sccm

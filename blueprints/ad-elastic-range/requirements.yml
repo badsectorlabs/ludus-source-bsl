@@ -1,0 +1,10 @@
+# requirements.yml: dependencies for the AD + Elastic Security Range blueprint.
+
+roles:
+  - name: badsectorlabs.ludus_adcs
+  - name: badsectorlabs.ludus_mssql
+  - name: badsectorlabs.ludus_elastic_container
+  - name: badsectorlabs.ludus_elastic_agent
+
+collections:
+  - name: badsectorlabs.ludus_windows_utils

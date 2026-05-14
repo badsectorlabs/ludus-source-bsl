@@ -175,3 +175,7 @@ ludus range deploy -r <RANGE_ID> -t user-defined-roles
 - [@Synzack](https://github.com/Synzack) / [@kernel-sanders](https://github.com/kernel-sanders) — original [ludus_sccm](https://github.com/Synzack/ludus_sccm)
 - [Misconfiguration Manager](https://github.com/subat0mern/Misconfiguration-Manager) — SCCM attack technique reference
 - [Ludus](https://ludus.cloud) by [Bad Sector Labs](https://github.com/badsectorlabs)
+
+## License
+
+AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-range-configs/blob/main/LICENSE)

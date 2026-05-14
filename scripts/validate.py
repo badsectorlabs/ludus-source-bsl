@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) Bad Sector Labs — https://github.com/badsectorlabs/ludus-range-configs
 """Validate the manifests in this Ludus source.
 
 A Ludus source can ship any combination of Packer templates, Ansible roles,

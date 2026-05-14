@@ -1,6 +1,6 @@
 # Bad Sector Labs — Ludus Range Configs
 
-A [Ludus source](https://gitlab.com/badsectorlabs/ludus-source-template) is a versioned bundle of Packer templates, Ansible roles, and blueprints, served from a git repo, tarball, or local directory
+A [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources) shipping production-ready blueprints for offensive security labs. Add the source once, then apply any blueprint to spin up a fully configured range in one step.
 
 ```bash
 ludus source add https://github.com/badsectorlabs/ludus-range-configs
@@ -13,7 +13,7 @@ ludus blueprint list
 |---|---|---|---|
 | [`goad`](./blueprints/goad/) | Game of Active Directory | 6 | Multi-domain, multi-forest AD attack lab with ADCS ESC1-16, MSSQL, LAPS, gMSA, and the full upstream GOAD ACL chain |
 | [`sccm`](./blueprints/sccm/) | SCCM / MECM Hierarchy Lab | 13 | Full CAS + Primary Site + Secondary Site hierarchy; vulnerable to nearly all Misconfiguration Manager techniques |
-| [`goad-elastic`](./blueprints/goad-elastic/) | GOAD + Elastic Security | 5 | AD attack lab with Elastic SIEM, Fleet, and Sysmon on every Windows VM |
+| [`ad-elastic-range`](./blueprints/ad-elastic-range/) | AD + Elastic Security Range | 6 | Star Wars-themed two-domain AD lab with ADCS ESC1/ESC8, cross-domain MSSQL, and Elastic Agent + Sysmon on every VM |
 
 ## Quick Start
 
@@ -24,8 +24,8 @@ ludus source add https://github.com/badsectorlabs/ludus-range-configs
 # List available blueprints
 ludus blueprint list
 
-# Apply a blueprint to your DEFAULT range (specific -r if you want to apply the blueprint to a different range ID) and deploy
-ludus blueprint apply ludus-range-configs/goad
+# Apply a blueprint and deploy
+ludus blueprint apply ludus-range-configs/ad-elastic-range
 ludus range deploy
 
 # Follow the logs
@@ -37,13 +37,13 @@ ludus range logs -f
 ```
 blueprints/
 ├── goad/                  Game of Active Directory
-│   ├── blueprint.yml      Blueprint metadata
-│   ├── range-config.yml   Ludus range configuration
-│   ├── requirements.yml   Role and collection dependencies
+│   ├── blueprint.yml
+│   ├── range-config.yml
+│   ├── requirements.yml
 │   ├── subscription_refs.yml
-│   ├── roles/             Blueprint-local Ansible roles (none)
-│   ├── templates/         Blueprint-local Packer templates (none)
-│   ├── testing/           Validation test suite (validate_goad.py, pytest)
+│   ├── roles/
+│   ├── templates/
+│   ├── testing/           validate_goad.py + pytest suite
 │   └── README.md
 ├── sccm/                  SCCM / MECM Hierarchy Lab
 │   ├── blueprint.yml
@@ -53,7 +53,7 @@ blueprints/
 │   ├── roles/
 │   ├── templates/
 │   └── README.md
-└── goad-elastic/          GOAD + Elastic Security
+└── ad-elastic-range/      AD + Elastic Security Range
     ├── blueprint.yml
     ├── range-config.yml
     ├── requirements.yml
@@ -79,7 +79,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on adding new blueprints
 
 ## License
 
-GPL-3.0-or-later — See [LICENSE](./LICENSE)
+AGPL-3.0-or-later — See [LICENSE](./LICENSE)
 
 ## Acknowledgments
 

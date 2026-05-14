@@ -82,3 +82,7 @@ GOAD_SECOND_OCTET=1 pytest test_goad.py -v
 
 - `validate_goad.py`: `0` = all pass, `1` = failures, `2` = configuration error
 - `pytest`: standard pytest exit codes (`0` pass, `1` failures)
+
+## License
+
+AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-range-configs/blob/main/LICENSE)

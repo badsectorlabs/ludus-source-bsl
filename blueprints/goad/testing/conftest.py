@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) Bad Sector Labs — https://github.com/badsectorlabs/ludus-range-configs
 """
 conftest.py — shared pytest configuration for GOAD tests.
 Handles CLI option registration and auto-detection of range settings.

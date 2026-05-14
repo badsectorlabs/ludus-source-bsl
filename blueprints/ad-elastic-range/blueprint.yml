@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+manifest_version: 1
+id: ad-elastic-range
+name: "AD + Elastic Security Range"
+description: >
+  Star Wars-themed Active Directory attack lab with full Elastic Security stack.
+  Two-domain forest (galactic.empire root + rebel.galactic.empire child), ADCS
+  with ESC1 and ESC8, two MSSQL servers with impersonation/linked-server attack
+  paths, and Elastic Agent + Sysmon on every VM. Covers Kerberoasting, AS-REP
+  roasting, LLMNR/NBT-NS poisoning, NTLM coercion, ADCS certificate abuse, and
+  MSSQL lateral movement — all feeding telemetry into a dedicated Elastic SIEM.
+version: 0.1.0
+config: range-config.yml
+
+tags:
+  - active-directory
+  - elastic
+  - siem
+  - adcs
+  - mssql
+  - windows
+  - attack-lab
+  - sysmon
+  - child-domain
+  - kerberoasting
+
+min_ludus_version: "2.0.0"
