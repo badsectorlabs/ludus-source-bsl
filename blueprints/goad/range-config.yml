@@ -315,7 +315,7 @@ ludus:
       role: member
     roles:
       - name: badsectorlabs.ludus_adcs
-      - name: ludus_mssql
+      - name: badsectorlabs.ludus_mssql
       # LAPS client-side: move braavos$ to the LAPS OU. DC-side runs on DC03 first.
       - name: badsectorlabs.ludus_windows_utils.ludus_ad_laps
         depends_on:
