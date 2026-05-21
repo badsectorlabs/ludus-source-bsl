@@ -5,13 +5,9 @@
 roles:
   # Elastic container — Elasticsearch + Kibana + Fleet on Debian
   - name: badsectorlabs.ludus_elastic_container
-    src: https://github.com/badsectorlabs/ludus_elastic_container
-    version: main
 
   # Elastic agent — deploys agent + optional Sysmon to Windows endpoints
   - name: badsectorlabs.ludus_elastic_agent
-    src: https://github.com/badsectorlabs/ludus_elastic_agent
-    version: main
 
 collections:
   # Windows utils collection — AD password policy, bulk content roles
