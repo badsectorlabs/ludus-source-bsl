@@ -85,4 +85,4 @@ GOAD_SECOND_OCTET=1 pytest test_goad.py -v
 
 ## License
 
-AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-range-configs/blob/main/LICENSE)
+AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-source-bsl/blob/main/LICENSE)

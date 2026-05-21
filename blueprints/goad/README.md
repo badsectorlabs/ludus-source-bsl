@@ -5,8 +5,8 @@ A multi-domain, multi-forest Active Directory attack lab for [Ludus](https://lud
 ## Quick Start
 
 ```bash
-ludus source add https://github.com/badsectorlabs/ludus-range-configs
-ludus blueprint apply ludus-range-configs/goad
+ludus source add https://github.com/badsectorlabs/ludus-source-bsl
+ludus blueprint apply ludus-source-bsl/goad
 ludus range deploy
 ```
 
@@ -164,4 +164,4 @@ Expected: **186/186** checks passing, **140/140** pytest tests passing.
 
 ## License
 
-AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-range-configs/blob/main/LICENSE)
+AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-source-bsl/blob/main/LICENSE)

@@ -82,8 +82,8 @@ Brief description of what this blueprint provides.
 ## Quick Start
 
 ```bash
-ludus source add https://github.com/badsectorlabs/ludus-range-configs
-ludus blueprint apply ludus-range-configs/my-ad-lab
+ludus source add https://github.com/badsectorlabs/ludus-source-bsl
+ludus blueprint apply ludus-source-bsl/my-ad-lab
 ludus range deploy
 ```
 

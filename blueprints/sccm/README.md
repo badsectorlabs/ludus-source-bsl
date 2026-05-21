@@ -7,8 +7,8 @@ This lab is vulnerable to **nearly all** attack techniques in [Misconfiguration 
 ## Quick Start
 
 ```bash
-ludus source add https://github.com/badsectorlabs/ludus-range-configs
-ludus blueprint apply ludus-range-configs/sccm
+ludus source add https://github.com/badsectorlabs/ludus-source-bsl
+ludus blueprint apply ludus-source-bsl/sccm
 ludus range deploy
 ```
 
@@ -178,4 +178,4 @@ ludus range deploy -r <RANGE_ID> -t user-defined-roles
 
 ## License
 
-AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-range-configs/blob/main/LICENSE)
+AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-source-bsl/blob/main/LICENSE)

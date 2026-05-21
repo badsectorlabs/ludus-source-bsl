@@ -1,7 +1,7 @@
 manifest_version: 1
-name: "Bad Sector Labs — Ludus Range Configs"
+name: "Ludus Source - Bad Sector Labs"
 description: "Production-ready Ludus blueprints: GOAD multi-domain AD attack lab, SCCM/MECM hierarchy lab, and AD + Elastic Security detection lab."
 authors:
   - "Bad Sector Labs <info@badsectorlabs.com>"
-homepage: https://github.com/badsectorlabs/ludus-range-configs
+homepage: https://github.com/badsectorlabs/ludus-source-bsl
 license: AGPL-3.0-or-later

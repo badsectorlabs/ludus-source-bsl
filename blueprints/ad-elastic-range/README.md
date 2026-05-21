@@ -5,8 +5,8 @@ A Star Wars-themed Active Directory attack lab with a full [Elastic Security](ht
 ## Quick Start
 
 ```bash
-ludus source add https://github.com/badsectorlabs/ludus-range-configs
-ludus blueprint apply ludus-range-configs/ad-elastic-range
+ludus source add https://github.com/badsectorlabs/ludus-source-bsl
+ludus blueprint apply ludus-source-bsl/ad-elastic-range
 ludus range deploy
 ```
 
@@ -212,4 +212,4 @@ After deploy, navigate to Kibana → Fleet → Agents to verify all 5 agents are
 
 ## License
 
-AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-range-configs/blob/main/LICENSE)
+AGPL-3.0-or-later — See [LICENSE](https://github.com/badsectorlabs/ludus-source-bsl/blob/main/LICENSE)

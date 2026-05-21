@@ -1,9 +1,9 @@
-# Bad Sector Labs — Ludus Range Configs
+# Ludus Source - Bad Sector Labs
 
 A [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources) shipping production-ready blueprints for offensive security labs. Add the source once, then apply any blueprint to spin up a fully configured range in one step.
 
 ```bash
-ludus source add https://github.com/badsectorlabs/ludus-range-configs
+ludus source add https://github.com/badsectorlabs/ludus-source-bsl
 ludus blueprint list
 ```
 
@@ -19,13 +19,13 @@ ludus blueprint list
 
 ```bash
 # Add this source to your Ludus server
-ludus source add https://github.com/badsectorlabs/ludus-range-configs
+ludus source add https://github.com/badsectorlabs/ludus-source-bsl
 
 # List available blueprints
 ludus blueprint list
 
 # Apply a blueprint and deploy
-ludus blueprint apply ludus-range-configs/ad-elastic-range
+ludus blueprint apply ludus-source-bsl/ad-elastic-range
 ludus range deploy
 
 # Follow the logs
