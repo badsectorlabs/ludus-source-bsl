@@ -2,6 +2,7 @@
 
 roles:
   - name: badsectorlabs.ludus_adcs
+  - name: badsectorlabs.ludus_mssql
 
 collections:
   - name: badsectorlabs.ludus_windows_utils

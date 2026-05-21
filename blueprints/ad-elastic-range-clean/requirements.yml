@@ -13,6 +13,7 @@ roles:
     src: https://github.com/badsectorlabs/ludus_elastic_agent
     version: main
 
+collections:
   # Windows utils collection — AD password policy, bulk content roles
   - name: badsectorlabs.ludus_windows_utils
     version: ">=1.2.0"
