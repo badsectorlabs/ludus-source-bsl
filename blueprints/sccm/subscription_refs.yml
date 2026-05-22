@@ -1,4 +1,0 @@
-# subscription_refs.yml: SCCM blueprint uses no subscription/license-gated roles.
-# All roles are open-source and available via public GitHub.
-
-roles: []

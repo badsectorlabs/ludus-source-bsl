@@ -40,30 +40,19 @@ blueprints/
 │   ├── blueprint.yml
 │   ├── range-config.yml
 │   ├── requirements.yml
-│   ├── subscription_refs.yml
-│   ├── roles/
-│   ├── templates/
 │   ├── testing/           validate_goad.py + pytest suite
 │   └── README.md
 ├── sccm/                  SCCM / MECM Hierarchy Lab
 │   ├── blueprint.yml
 │   ├── range-config.yml
 │   ├── requirements.yml
-│   ├── subscription_refs.yml
-│   ├── roles/
-│   ├── templates/
 │   └── README.md
 └── ad-elastic-range/      AD + Elastic Security Range
     ├── blueprint.yml
     ├── range-config.yml
     ├── requirements.yml
-    ├── subscription_refs.yml
-    ├── roles/
-    ├── templates/
     └── README.md
 
-roles/                     Ansible roles shared across all blueprints (none)
-templates/                 Packer templates shared across all blueprints (none)
 source.yml                 Source metadata
 scripts/validate.py        Manifest validation (run by CI)
 ```
