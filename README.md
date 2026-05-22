@@ -40,7 +40,6 @@ blueprints/
 │   ├── blueprint.yml
 │   ├── range-config.yml
 │   ├── requirements.yml
-│   ├── subscription_refs.yml
 │   ├── roles/
 │   ├── templates/
 │   ├── testing/           validate_goad.py + pytest suite
@@ -49,7 +48,6 @@ blueprints/
 │   ├── blueprint.yml
 │   ├── range-config.yml
 │   ├── requirements.yml
-│   ├── subscription_refs.yml
 │   ├── roles/
 │   ├── templates/
 │   └── README.md
@@ -57,7 +55,6 @@ blueprints/
     ├── blueprint.yml
     ├── range-config.yml
     ├── requirements.yml
-    ├── subscription_refs.yml
     ├── roles/
     ├── templates/
     └── README.md

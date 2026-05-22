@@ -17,7 +17,6 @@ blueprints/my-ad-lab/
 ├── blueprint.yml          Required — display metadata
 ├── range-config.yml       Required — the Ludus range configuration
 ├── requirements.yml       Optional — pinned Galaxy roles / off-Galaxy roles or collections
-├── subscription_refs.yml  Optional — license-gated role names (delete if unused)
 ├── roles/                 Optional — Ansible roles only this blueprint needs
 ├── templates/             Optional — Packer templates only this blueprint needs
 └── README.md              Required — documentation with diagram, VMs, attack paths
