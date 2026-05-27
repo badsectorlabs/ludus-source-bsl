@@ -46,7 +46,7 @@ collections:
     version: ">=1.1.35"
 ```
 
-Use `collections:` for anything installed with `ludus ansible collection add` (e.g., `mayyhem.ludus_sccm`, `badsectorlabs.ludus_windows_utils`). Use `roles:` for standalone roles installed with `ludus ansible role add`.
+Use `collections:` for anything installed with `ludus ansible collection add` (e.g., `badsectorlabs.ludus_windows_utils`). Use `roles:` for standalone roles installed with `ludus ansible role add`.
 
 ## Range Config Rules
 

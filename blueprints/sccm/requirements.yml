@@ -1,4 +1,0 @@
-# requirements.yml: dependencies for the SCCM blueprint.
-
-collections:
-  - name: mayyhem.ludus_sccm

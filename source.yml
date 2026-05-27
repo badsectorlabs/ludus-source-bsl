@@ -1,6 +1,6 @@
 manifest_version: 1
 name: "Ludus Source - Bad Sector Labs"
-description: "Production-ready Ludus blueprints: GOAD multi-domain AD attack lab, SCCM/MECM hierarchy lab, and AD + Elastic Security detection lab."
+description: "Production-ready Ludus blueprints: GOAD multi-domain AD attack lab and AD + Elastic Security detection lab."
 authors:
   - "Bad Sector Labs <info@badsectorlabs.com>"
 homepage: https://github.com/badsectorlabs/ludus-source-bsl
