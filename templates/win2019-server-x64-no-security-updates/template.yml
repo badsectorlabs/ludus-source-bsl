@@ -1,0 +1,2 @@
+manifest_version: 1
+description: Windows Server 2019 (x64) built without security updates, for patch-gap and vulnerability labs.
