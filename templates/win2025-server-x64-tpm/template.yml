@@ -1,2 +1,3 @@
 manifest_version: 1
 description: Windows Server 2025 (x64) with a virtual TPM for Secure Boot.
+thumbnail: thumbnail.png

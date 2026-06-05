@@ -1,2 +1,3 @@
 manifest_version: 1
 description: Windows offensive-security workstation preloaded with Mandiant Commando VM (red-team and pentest tooling).
+thumbnail: thumbnail.png

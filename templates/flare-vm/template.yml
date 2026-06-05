@@ -1,2 +1,3 @@
 manifest_version: 1
 description: Windows reverse-engineering and malware-analysis workstation built on Mandiant FLARE-VM.
+thumbnail: thumbnail.png
