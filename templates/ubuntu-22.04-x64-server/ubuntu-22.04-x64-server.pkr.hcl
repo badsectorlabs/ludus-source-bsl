@@ -3,6 +3,11 @@ variable "description" {
   default = "Ubuntu 22.04 LTS (Jammy Jellyfish) x64 server."
 }
 
+variable "thumbnail" {
+  type    = string
+  default = "thumbnail.png"
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:9bc6028870aef3f74f4e16b900008179e78b130e6b0b9a140635434a46aa98b0"

@@ -3,6 +3,11 @@ variable "description" {
   default = "Debian 10 (Buster) minimal x64 server."
 }
 
+variable "thumbnail" {
+  type    = string
+  default = "thumbnail.png"
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha512:466add7fb5ba7caebd27bf6b8b326a24857295673045d643950869f5f0440c44ae833dea49c7b8a674afbf82c3f41ceb5062948aea443d581bc827db62cc5249"

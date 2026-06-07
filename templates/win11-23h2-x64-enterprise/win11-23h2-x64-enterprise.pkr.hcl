@@ -3,6 +3,11 @@ variable "description" {
   default = "Windows 11 23H2 Enterprise (x64)."
 }
 
+variable "thumbnail" {
+  type    = string
+  default = "thumbnail.png"
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:c8dbc96b61d04c8b01faf6ce0794fdf33965c7b350eaa3eb1e6697019902945c"

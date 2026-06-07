@@ -3,6 +3,11 @@ variable "description" {
   default = "Ubuntu 20.04 LTS (Focal Fossa) x64 server."
 }
 
+variable "thumbnail" {
+  type    = string
+  default = "thumbnail.png"
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2"

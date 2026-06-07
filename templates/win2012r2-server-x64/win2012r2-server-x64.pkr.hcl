@@ -3,6 +3,11 @@ variable "description" {
   default = "Windows Server 2012 R2 (x64)."
 }
 
+variable "thumbnail" {
+  type    = string
+  default = "thumbnail.png"
+}
+
 variable "iso_checksum" {
   type    = string
   default = "md5:5b5e08c490ad16b59b1d9fab0def883a"
