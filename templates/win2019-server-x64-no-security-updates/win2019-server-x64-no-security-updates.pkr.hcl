@@ -1,3 +1,8 @@
+variable "description" {
+  type    = string
+  default = "Windows Server 2019 (x64) built without security updates, for patch-gap and vulnerability labs."
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:6dae072e7f78f4ccab74a45341de0d6e2d45c39be25f1f5920a2ab4f51d7bcbb"

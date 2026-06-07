@@ -1,3 +1,8 @@
+variable "description" {
+  type    = string
+  default = "Windows Server 2016 (x64)."
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:1ce702a578a3cb1ac3d14873980838590f06d5b7101c5daaccbac9d73f1fb50f"

@@ -21,8 +21,11 @@ import sys
 import yaml
 
 ID_RE = re.compile(r'^[A-Za-z][A-Za-z0-9_\-]*(/[A-Za-z0-9_\-]+){0,2}$')
-BLUEPRINT_REQUIRED = {"manifest_version", "id", "name", "description", "version", "config"}
-SOURCE_REQUIRED = {"manifest_version"}
+# manifest_version is optional (Ludus defaults it to 1); it is only required
+# once a future breaking schema bumps it, so it is not in any required set.
+BLUEPRINT_REQUIRED = {"id", "name", "description", "version", "config"}
+SOURCE_REQUIRED = set()
+TEMPLATE_REQUIRED = set()
 
 
 def load_yaml(path):
@@ -42,6 +45,35 @@ def validate_source_yml(fail):
     if missing:
         print(f"::error::source.yml missing fields: {sorted(missing)}")
         fail = True
+    return fail
+
+
+def validate_template(d, fail):
+    """template.yml is optional; when present it must carry manifest_version,
+    and any thumbnail: must be a relative path to a file that exists."""
+    manifest = f"templates/{d}/template.yml"
+    if not os.path.isfile(manifest):
+        return fail
+    try:
+        m = load_yaml(manifest)
+    except yaml.YAMLError as e:
+        print(f"::error::{manifest} invalid YAML: {e}")
+        return True
+    missing = TEMPLATE_REQUIRED - m.keys()
+    if missing:
+        print(f"::error::{manifest} missing fields: {sorted(missing)}")
+        fail = True
+    thumb = m.get("thumbnail")
+    if thumb is not None:
+        if not isinstance(thumb, str) or not thumb:
+            print(f"::error::{manifest} thumbnail must be a non-empty string")
+            fail = True
+        elif thumb.startswith("/") or ".." in thumb.split("/"):
+            print(f"::error::{manifest} thumbnail must be a relative path inside the template dir: {thumb!r}")
+            fail = True
+        elif not os.path.isfile(f"templates/{d}/{thumb}"):
+            print(f"::error::{manifest} thumbnail file not found: templates/{d}/{thumb}")
+            fail = True
     return fail
 
 
@@ -96,6 +128,11 @@ def main() -> int:
         for d in sorted(os.listdir("blueprints")):
             if os.path.isdir(f"blueprints/{d}"):
                 fail = validate_blueprint(d, fail)
+
+    if has_templates:
+        for d in sorted(os.listdir("templates")):
+            if os.path.isdir(f"templates/{d}"):
+                fail = validate_template(d, fail)
 
     return 1 if fail else 0
 

@@ -1,3 +1,8 @@
+variable "description" {
+  type    = string
+  default = "Windows 11 25H2 Enterprise (x64)."
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:a61adeab895ef5a4db436e0a7011c92a2ff17bb0357f58b13bbc4062e535e7b9"

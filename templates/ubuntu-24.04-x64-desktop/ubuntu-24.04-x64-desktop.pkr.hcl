@@ -1,3 +1,8 @@
+variable "description" {
+  type    = string
+  default = "Ubuntu 24.04 LTS (Noble Numbat) x64 desktop."
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:c2e6f4dc37ac944e2ed507f87c6188dd4d3179bf4a3f9e110d3c88d1f3294bdc"
