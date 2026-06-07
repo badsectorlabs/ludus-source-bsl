@@ -3,7 +3,7 @@ variable "description" {
   default = "Rocky Linux 9 minimal x64 server."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

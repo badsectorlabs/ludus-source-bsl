@@ -3,7 +3,7 @@ variable "description" {
   default = "Ubuntu 24.04 LTS (Noble Numbat) x64 server."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

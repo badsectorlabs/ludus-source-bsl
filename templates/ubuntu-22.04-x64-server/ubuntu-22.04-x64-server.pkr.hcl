@@ -3,7 +3,7 @@ variable "description" {
   default = "Ubuntu 22.04 LTS (Jammy Jellyfish) x64 server."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

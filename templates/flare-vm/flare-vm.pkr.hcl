@@ -3,7 +3,7 @@ variable "description" {
   default = "Windows reverse-engineering and malware-analysis workstation built on Mandiant FLARE-VM."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

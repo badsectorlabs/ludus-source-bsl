@@ -3,7 +3,7 @@ variable "description" {
   default = "Ubuntu 20.04 LTS (Focal Fossa) x64 server."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

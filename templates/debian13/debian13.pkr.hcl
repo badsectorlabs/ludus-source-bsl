@@ -3,7 +3,7 @@ variable "description" {
   default = "Debian 13 (Trixie) minimal x64 server."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

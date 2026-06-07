@@ -3,7 +3,7 @@ variable "description" {
   default = "Windows 11 25H2 Enterprise (x64)."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

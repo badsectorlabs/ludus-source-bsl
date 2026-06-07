@@ -3,7 +3,7 @@ variable "description" {
   default = "REMnux Linux toolkit for reverse-engineering and analyzing malicious software."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

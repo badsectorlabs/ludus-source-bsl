@@ -3,7 +3,7 @@ variable "description" {
   default = "Windows Server 2012 R2 (x64)."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

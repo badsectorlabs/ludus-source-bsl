@@ -3,7 +3,7 @@ variable "description" {
   default = "Windows Server 2025 (x64) with a virtual TPM for Secure Boot."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

@@ -3,7 +3,7 @@ variable "description" {
   default = "Windows 11 24H2 Enterprise (x64) with a virtual TPM for Secure Boot."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }

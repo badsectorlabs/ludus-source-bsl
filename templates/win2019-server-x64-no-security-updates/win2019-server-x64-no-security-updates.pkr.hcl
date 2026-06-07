@@ -3,7 +3,7 @@ variable "description" {
   default = "Windows Server 2019 (x64) built without security updates, for patch-gap and vulnerability labs."
 }
 
-variable "thumbnail" {
+variable "thumbnail_path" {
   type    = string
   default = "thumbnail.png"
 }
