@@ -1,3 +1,8 @@
+variable "description" {
+  type    = string
+  default = "Windows 11 24H2 Enterprise (x64) with a virtual TPM for Secure Boot."
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:F9013861CB88C168941FE1164DB500157A803E3A7F33A546252BA314A4C76AAD"

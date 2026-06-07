@@ -21,9 +21,11 @@ import sys
 import yaml
 
 ID_RE = re.compile(r'^[A-Za-z][A-Za-z0-9_\-]*(/[A-Za-z0-9_\-]+){0,2}$')
-BLUEPRINT_REQUIRED = {"manifest_version", "id", "name", "description", "version", "config"}
-SOURCE_REQUIRED = {"manifest_version"}
-TEMPLATE_REQUIRED = {"manifest_version"}
+# manifest_version is optional (Ludus defaults it to 1); it is only required
+# once a future breaking schema bumps it, so it is not in any required set.
+BLUEPRINT_REQUIRED = {"id", "name", "description", "version", "config"}
+SOURCE_REQUIRED = set()
+TEMPLATE_REQUIRED = set()
 
 
 def load_yaml(path):

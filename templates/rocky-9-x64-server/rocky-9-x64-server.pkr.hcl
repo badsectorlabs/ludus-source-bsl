@@ -1,3 +1,8 @@
+variable "description" {
+  type    = string
+  default = "Rocky Linux 9 minimal x64 server."
+}
+
 variable "iso_checksum" {
   type    = string
   default = "file:https://download.rockylinux.org/pub/rocky/9/isos/x86_64/Rocky-9-latest-x86_64-minimal.iso.CHECKSUM"

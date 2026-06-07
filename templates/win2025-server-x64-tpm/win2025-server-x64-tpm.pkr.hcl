@@ -1,3 +1,8 @@
+variable "description" {
+  type    = string
+  default = "Windows Server 2025 (x64) with a virtual TPM for Secure Boot."
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:d0ef4502e350e3c6c53c15b1b3020d38a5ded011bf04998e950720ac8579b23d"

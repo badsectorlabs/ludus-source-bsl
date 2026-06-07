@@ -1,3 +1,8 @@
+variable "description" {
+  type    = string
+  default = "Windows 10 22H2 Enterprise (x64)."
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:ef7312733a9f5d7d51cfa04ac497671995674ca5e1058d5164d6028f0938d668"
