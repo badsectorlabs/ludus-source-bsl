@@ -3,9 +3,9 @@ variable "description" {
   default = "Windows Server 2012 R2 (x64)."
 }
 
-variable "thumbnail_path" {
+variable "icon_path" {
   type    = string
-  default = "thumbnail.png"
+  default = "icon.png"
 }
 
 variable "iso_checksum" {

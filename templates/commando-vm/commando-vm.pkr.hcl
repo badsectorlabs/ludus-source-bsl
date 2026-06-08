@@ -3,9 +3,9 @@ variable "description" {
   default = "Windows offensive-security workstation preloaded with Mandiant Commando VM (red-team and pentest tooling)."
 }
 
-variable "thumbnail_path" {
+variable "icon_path" {
   type    = string
-  default = "thumbnail.png"
+  default = "icon.png"
 }
 
 variable "iso_checksum" {

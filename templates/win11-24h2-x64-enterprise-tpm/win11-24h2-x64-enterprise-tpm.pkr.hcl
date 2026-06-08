@@ -3,9 +3,9 @@ variable "description" {
   default = "Windows 11 24H2 Enterprise (x64) with a virtual TPM for Secure Boot."
 }
 
-variable "thumbnail_path" {
+variable "icon_path" {
   type    = string
-  default = "thumbnail.png"
+  default = "icon.png"
 }
 
 variable "iso_checksum" {

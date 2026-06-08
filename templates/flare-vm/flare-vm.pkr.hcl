@@ -3,9 +3,9 @@ variable "description" {
   default = "Windows reverse-engineering and malware-analysis workstation built on Mandiant FLARE-VM."
 }
 
-variable "thumbnail_path" {
+variable "icon_path" {
   type    = string
-  default = "thumbnail.png"
+  default = "icon.png"
 }
 
 variable "iso_checksum" {

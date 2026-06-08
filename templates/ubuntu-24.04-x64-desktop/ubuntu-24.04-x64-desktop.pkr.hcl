@@ -3,9 +3,9 @@ variable "description" {
   default = "Ubuntu 24.04 LTS (Noble Numbat) x64 desktop."
 }
 
-variable "thumbnail_path" {
+variable "icon_path" {
   type    = string
-  default = "thumbnail.png"
+  default = "icon.png"
 }
 
 variable "iso_checksum" {

@@ -3,9 +3,9 @@ variable "description" {
   default = "Ubuntu 22.04 LTS (Jammy Jellyfish) x64 server."
 }
 
-variable "thumbnail_path" {
+variable "icon_path" {
   type    = string
-  default = "thumbnail.png"
+  default = "icon.png"
 }
 
 variable "iso_checksum" {

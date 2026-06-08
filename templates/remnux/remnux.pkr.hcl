@@ -3,9 +3,9 @@ variable "description" {
   default = "REMnux Linux toolkit for reverse-engineering and analyzing malicious software."
 }
 
-variable "thumbnail_path" {
+variable "icon_path" {
   type    = string
-  default = "thumbnail.png"
+  default = "icon.png"
 }
 
 variable "iso_checksum" {
