@@ -1,6 +1,6 @@
 # Ludus Source - Bad Sector Labs
 
-The official [Bad Sector Labs](https://github.com/badsectorlabs) [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources): first-party blueprints, Packer templates, and Ansible roles for offensive security labs. Add the source once, build the templates a blueprint needs, then apply it to spin up a fully configured range.
+The official [Bad Sector Labs](https://github.com/badsectorlabs) [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources): first-party blueprints, Packer templates, and Ansible roles & collections for offensive security labs. Add the source once, build the templates a blueprint needs, then apply it to spin up a fully configured range.
 
 ```bash
 ludus source add https://github.com/badsectorlabs/ludus-source-bsl
