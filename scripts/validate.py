@@ -85,7 +85,7 @@ def main() -> int:
     has_blueprints = os.path.isdir("blueprints") and any(
         os.path.isdir(f"blueprints/{d}") for d in os.listdir("blueprints")
     )
-    # v2 layout: roles live under ansible/roles/, collections under
+    # Roles live under ansible/roles/, collections under
     # ansible/collections/. Each entry may be a git submodule that is NOT
     # checked out in CI (validate.yml / .gitlab-ci.yml don't recurse
     # submodules), so an entry is "shipped" if its name is present under the
