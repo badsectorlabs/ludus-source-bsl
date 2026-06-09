@@ -1,6 +1,6 @@
 # Ludus Source - Bad Sector Labs
 
-The official [Bad Sector Labs](https://github.com/badsectorlabs) [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources): first-party blueprints, Packer templates, and Ansible roles & collections for offensive security labs. Add the source once, build the templates a blueprint needs, then apply it to spin up a fully configured range.
+The official Bad Sector Labs [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources): first-party blueprints, Packer templates, and Ansible roles & collections for offensive security labs. Add the source once, build the templates a blueprint needs, then apply it to spin up a fully configured range.
 
 ```bash
 ludus source add https://github.com/badsectorlabs/ludus-source-bsl
@@ -44,7 +44,7 @@ See [`templates/README.md`](./templates/README.md) for the full list. `commando-
 
 ## Ansible content
 
-This source vendors Bad Sector Labs' public Ludus roles (12) and the `ludus_windows_utils` collection as **git submodules** pinned to release tags under [`ansible/`](./ansible/). Adding the source installs them automatically and a re-sync refreshes them to the pinned versions. See [`ansible/README.md`](./ansible/README.md) for the full list and what each provides.
+This source vendors Bad Sector Labs' public Ansible roles and collections as **git submodules** pinned to release tags under [`ansible/`](./ansible/). Adding the source installs them automatically and a re-sync refreshes them to the pinned versions. See [`ansible/README.md`](./ansible/README.md) for the full list and what each provides.
 
 ## Requirements
 
@@ -62,4 +62,3 @@ AGPL-3.0-or-later — See [LICENSE](./LICENSE)
 
 - [GOAD](https://github.com/Orange-Cyberdefense/GOAD) by [@Mayfly277](https://github.com/Mayfly277) / [Orange Cyberdefense](https://github.com/Orange-Cyberdefense)
 - [DreadGOAD](https://github.com/dreadnode/DreadGOAD) by [Dreadnode](https://github.com/dreadnode)
-- [Ludus](https://ludus.cloud) by [Bad Sector Labs](https://github.com/badsectorlabs)
