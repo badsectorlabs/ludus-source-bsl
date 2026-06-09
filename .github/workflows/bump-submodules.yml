@@ -1,0 +1,149 @@
+name: bump-submodules
+
+# Advances the vendored Ansible submodules (ansible/roles/*, ansible/collections/*)
+# to their upstream's latest release tag and opens a single rolling PR.
+# Every run is a full sweep of all ansible/ submodules.
+
+on:
+  # Periodically re-pin anything that has drifted from its latest release tag.
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC
+  # Manual: run on demand from the Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: bump-submodules
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with submodules + full tag history)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.BSL_BOT_PR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Bump submodules to latest release tags
+        id: bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          # Read all submodule paths restricted to the ansible/ subtree.
+          paths="$(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' \
+                   | awk '{print $2}' \
+                   | grep -E '^ansible/(roles|collections)/' || true)"
+
+          if [ -z "${paths}" ]; then
+            echo "No ansible/ submodules found in .gitmodules; nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          summary=""
+          changed="false"
+
+          for sub_path in ${paths}; do
+            # Look up the section name for this path so we can fetch the url.
+            name="$(git config -f .gitmodules --get-regexp '^submodule\..*\.path$' \
+                    | awk -v p="${sub_path}" '$2==p {print $1}' \
+                    | sed -E 's/^submodule\.(.*)\.path$/\1/')"
+            abs_url="$(git config -f .gitmodules --get "submodule.${name}.url")"
+
+            # Derive "owner/repo" from the absolute GitHub URL.
+            repo_slug="$(basename "${abs_url}" .git)"
+            owner="$(basename "$(dirname "${abs_url}")")"
+            upstream="${owner}/${repo_slug}"
+
+            echo "::group::${sub_path}  (upstream ${upstream})"
+
+            # Fetch all tags into the submodule working tree.
+            git -C "${sub_path}" fetch --tags --force --quiet origin 2>/dev/null || \
+              git -C "${sub_path}" fetch --tags --force --quiet "${abs_url}" 2>/dev/null || true
+
+            # Resolve the latest release tag via git ls-remote (works for repos
+            # that have git tags but no GitHub Release objects). Matches vX.Y.Z or X.Y.Z.
+            raw_tag="$(git ls-remote --tags --refs "${abs_url}" \
+                        | awk -F'/' '{print $NF}' \
+                        | grep -E '^v?[0-9]+\.[0-9]+(\.[0-9]+)*$' \
+                        | sed 's/^v//' \
+                        | sort -V \
+                        | tail -n1 || true)"
+
+            if [ -z "${raw_tag}" ]; then
+              echo "no semver tag found for ${upstream}; leaving ${sub_path} pinned as-is"
+              echo "::endgroup::"
+              continue
+            fi
+
+            # Restore the leading v if the remote tag actually uses one.
+            tag="${raw_tag}"
+            if git -C "${sub_path}" rev-parse -q --verify "refs/tags/v${raw_tag}" >/dev/null 2>&1; then
+              tag="v${raw_tag}"
+            fi
+
+            echo "latest tag: ${tag}"
+
+            # Compare current submodule HEAD against the target tag commit.
+            current="$(git -C "${sub_path}" rev-parse HEAD)"
+            target="$(git -C "${sub_path}" rev-parse "refs/tags/${tag}^{commit}" 2>/dev/null || true)"
+
+            if [ -z "${target}" ]; then
+              echo "tag ${tag} not present locally after fetch; skipping ${sub_path}"
+              echo "::endgroup::"
+              continue
+            fi
+
+            if [ "${current}" = "${target}" ]; then
+              echo "already at ${tag} (${target}); no change"
+              echo "::endgroup::"
+              continue
+            fi
+
+            git -C "${sub_path}" checkout --quiet "refs/tags/${tag}"
+            git add "${sub_path}"
+            summary="${summary}- \`${sub_path}\` → \`${tag}\` (${upstream})"$'\n'
+            changed="true"
+            echo "bumped to ${tag}"
+            echo "::endgroup::"
+          done
+
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+          {
+            echo "pr_body<<EOF"
+            if [ "${changed}" = "true" ]; then
+              printf "Automated submodule bump to latest release tags.\n\n%s" "${summary}"
+            else
+              echo "No submodules needed bumping."
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the bump PR
+        if: steps.bump.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.BSL_BOT_PR_TOKEN || secrets.GITHUB_TOKEN }}
+          branch: automation/bump-submodules
+          delete-branch: false
+          base: main
+          commit-message: "chore: bump vendored submodules to latest release tags"
+          title: "chore: bump vendored Ansible submodules"
+          body: ${{ steps.bump.outputs.pr_body }}
+          labels: |
+            automation
+            dependencies
+          add-paths: |
+            ansible
+
+      - name: Report when nothing changed
+        if: steps.bump.outputs.changed != 'true'
+        run: echo "No submodule updates available — no PR opened."
