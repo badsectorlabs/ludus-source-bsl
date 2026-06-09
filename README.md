@@ -40,72 +40,19 @@ This source also ships the [Packer](https://www.packer.io/) templates the bluepr
 ludus templates build -n debian-13-x64-server-template
 ```
 
-See [`templates/`](./templates/) for the full list. `commando-vm`, `flare-vm`, and `remnux` build on a base image and need their companion roles installed first — see [`templates/README.md`](./templates/README.md).
+See [`templates/README.md`](./templates/README.md) for the full list. `commando-vm`, `flare-vm`, and `remnux` build on a base image and need their companion roles installed first.
 
-## Roles
+## Ansible content
 
-This source vendors Bad Sector Labs' public Ludus roles as **git submodules** under [`ansible/roles/`](./ansible/roles/), each pinned to a release tag. Adding the source installs them automatically — no manual `ansible-galaxy` step — and a re-sync refreshes them to the pinned versions.
-
-| Role | Purpose |
-|---|---|
-| [`ludus_adcs`](./ansible/roles/ludus_adcs/) | Active Directory Certificate Services with ESC1-16 vulnerable templates |
-| [`ludus_mssql`](./ansible/roles/ludus_mssql/) | SQL Server with impersonation and linked-server attack paths |
-| [`ludus_elastic_container`](./ansible/roles/ludus_elastic_container/) | Elasticsearch + Kibana + Fleet server |
-| [`ludus_elastic_agent`](./ansible/roles/ludus_elastic_agent/) | Elastic Agent + optional Sysmon on endpoints |
-| [`ludus_commandovm`](./ansible/roles/ludus_commandovm/) | Mandiant Commando VM offensive Windows toolset |
-| [`ludus_flarevm`](./ansible/roles/ludus_flarevm/) | Mandiant FLARE-VM malware-analysis toolset |
-| [`ludus_remnux`](./ansible/roles/ludus_remnux/) | REMnux reverse-engineering distribution |
-| [`ludus_adaptix_c2`](./ansible/roles/ludus_adaptix_c2/) | Adaptix C2 framework server |
-| [`ludus_bloodhound_ce`](./ansible/roles/ludus_bloodhound_ce/) | BloodHound Community Edition |
-| [`ludus_emux`](./ansible/roles/ludus_emux/) | EMUX firmware/IoT emulation environment |
-| [`ludus_vulhub`](./ansible/roles/ludus_vulhub/) | Vulhub vulnerable-application environments |
-| [`ludus_xz_backdoor`](./ansible/roles/ludus_xz_backdoor/) | CVE-2024-3094 (xz-utils) backdoor lab |
-
-## Collections
-
-This source also vendors the [`ludus_windows_utils`](./ansible/collections/ludus_windows_utils/) Ansible collection as a git submodule under [`ansible/collections/`](./ansible/collections/), pinned to a release tag. It provides the Windows utility roles (AD password policy, bulk content, etc.) the blueprints rely on, and installs automatically when the source is added.
-
-> Each entry under `ansible/roles/` and `ansible/collections/` is a git **submodule** with an **absolute upstream** URL (`https://github.com/badsectorlabs/<repo>.git`), pinned to a release tag. Clone or sync the source with submodule support (Ludus does this automatically) to materialize them; for a manual clone use `git clone --recurse-submodules`.
-
-## Source Layout
-
-```
-blueprints/
-├── goad/                    Game of Active Directory (+ testing/ pytest suite)
-├── ad-elastic-range/        AD + Elastic Security Range
-└── ad-elastic-range-clean/  Clean AD + Elastic Baseline
-                             each: blueprint.yml, range-config.yml, requirements.yml, README.md
-templates/                   Packer templates (Debian, Ubuntu, Rocky, Windows, analyst VMs)
-ansible/
-├── roles/                   Vendored ludus_* roles (git submodules, pinned to tags)
-└── collections/             Vendored collections — ludus_windows_utils (git submodule)
-source.yml                   Source metadata
-scripts/validate.py          Manifest validation (run by CI)
-.gitmodules                  Submodule definitions (absolute upstream URLs)
-```
-
-## Automated updates
-
-The Ansible content this source ships (`ansible/roles/*`, `ansible/collections/*`)
-is vendored as git submodules pinned to each upstream's latest **release tag**. A
-GitHub Actions workflow (`.github/workflows/bump-submodules.yml`) keeps those pins
-current — every run is a full sweep of all submodules:
-
-- a weekly `schedule` re-pins anything that has drifted from its latest release tag;
-- you can also run it on demand from the Actions tab (`workflow_dispatch`).
-
-It opens (or updates) a single rolling PR on the fixed branch
-`automation/bump-submodules`; merge it to adopt the new pins. If nothing is stale,
-no PR is opened.
+This source vendors Bad Sector Labs' public Ludus roles (12) and the `ludus_windows_utils` collection as **git submodules** pinned to release tags under [`ansible/`](./ansible/). Adding the source installs them automatically and a re-sync refreshes them to the pinned versions. See [`ansible/README.md`](./ansible/README.md) for the full list and what each provides.
 
 ## Requirements
 
-- [Ludus](https://ludus.cloud) v2.0+
-- Templates must be built before deploying — see each blueprint's README for specifics
+Templates must be built before deploying — see each blueprint's README for specifics
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on adding new blueprints.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on adding new blueprints, and the [source layout](./CONTRIBUTING.md#source-layout) for how the repo is organized.
 
 ## License
 

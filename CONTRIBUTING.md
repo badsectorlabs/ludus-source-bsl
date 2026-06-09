@@ -2,6 +2,23 @@
 
 Thanks for contributing! This repo is a [Ludus source](https://docs.ludus.cloud/docs/using-ludus/sources) — a versioned bundle of blueprints that users can add with a single `ludus source add` command. Each blueprint is a complete, tested lab environment.
 
+## Source Layout
+
+```
+blueprints/
+├── goad/                    Game of Active Directory (+ testing/ pytest suite)
+├── ad-elastic-range/        AD + Elastic Security Range
+└── ad-elastic-range-clean/  Clean AD + Elastic Baseline
+                             each: blueprint.yml, range-config.yml, requirements.yml, README.md
+templates/                   Packer templates (Debian, Ubuntu, Rocky, Windows, analyst VMs)
+ansible/
+├── roles/                   Vendored ludus_* roles (git submodules, pinned to tags)
+└── collections/             Vendored collections — ludus_windows_utils (git submodule)
+source.yml                   Source metadata
+scripts/validate.py          Manifest validation (run by CI)
+.gitmodules                  Submodule definitions (absolute upstream URLs)
+```
+
 ## How to Submit a Blueprint
 
 1. **Fork** this repository
