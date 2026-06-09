@@ -1,0 +1,39 @@
+[submodule "ansible/roles/ludus_adcs"]
+	path = ansible/roles/ludus_adcs
+	url = https://github.com/badsectorlabs/ludus_adcs.git
+[submodule "ansible/roles/ludus_mssql"]
+	path = ansible/roles/ludus_mssql
+	url = https://github.com/badsectorlabs/ludus_mssql.git
+[submodule "ansible/roles/ludus_elastic_container"]
+	path = ansible/roles/ludus_elastic_container
+	url = https://github.com/badsectorlabs/ludus_elastic_container.git
+[submodule "ansible/roles/ludus_elastic_agent"]
+	path = ansible/roles/ludus_elastic_agent
+	url = https://github.com/badsectorlabs/ludus_elastic_agent.git
+[submodule "ansible/roles/ludus_commandovm"]
+	path = ansible/roles/ludus_commandovm
+	url = https://github.com/badsectorlabs/ludus_commandovm.git
+[submodule "ansible/roles/ludus_flarevm"]
+	path = ansible/roles/ludus_flarevm
+	url = https://github.com/badsectorlabs/ludus_flarevm.git
+[submodule "ansible/roles/ludus_remnux"]
+	path = ansible/roles/ludus_remnux
+	url = https://github.com/badsectorlabs/ludus_remnux.git
+[submodule "ansible/roles/ludus_adaptix_c2"]
+	path = ansible/roles/ludus_adaptix_c2
+	url = https://github.com/badsectorlabs/ludus_adaptix_c2.git
+[submodule "ansible/roles/ludus_bloodhound_ce"]
+	path = ansible/roles/ludus_bloodhound_ce
+	url = https://github.com/badsectorlabs/ludus_bloodhound_ce.git
+[submodule "ansible/roles/ludus_emux"]
+	path = ansible/roles/ludus_emux
+	url = https://github.com/badsectorlabs/ludus_emux.git
+[submodule "ansible/roles/ludus_vulhub"]
+	path = ansible/roles/ludus_vulhub
+	url = https://github.com/badsectorlabs/ludus_vulhub.git
+[submodule "ansible/roles/ludus_xz_backdoor"]
+	path = ansible/roles/ludus_xz_backdoor
+	url = https://github.com/badsectorlabs/ludus_xz_backdoor.git
+[submodule "ansible/collections/ludus_windows_utils"]
+	path = ansible/collections/ludus_windows_utils
+	url = https://github.com/badsectorlabs/ludus_windows_utils.git

@@ -10,8 +10,10 @@ and blueprints. This script checks whatever is present:
   - blueprints/<id>/blueprint.yml      -- required fields when the dir exists
   - blueprints/<id>/<config>           -- referenced by blueprint.yml.config
 
-A source with only roles/ or templates/ is valid and exits clean. An empty
-source is rejected.
+A source with only ansible/roles/, ansible/collections/, or templates/ is
+valid and exits clean. Those ansible/ entries may be git submodules (pinned
+to release tags) that are not checked out in CI; their presence still counts
+as shipping content. An empty source is rejected.
 
 Add your own checks below.
 """
@@ -83,15 +85,22 @@ def main() -> int:
     has_blueprints = os.path.isdir("blueprints") and any(
         os.path.isdir(f"blueprints/{d}") for d in os.listdir("blueprints")
     )
-    has_roles = os.path.isdir("roles") and any(
-        os.path.isdir(f"roles/{d}") for d in os.listdir("roles")
+    # v2 layout: roles live under ansible/roles/, collections under
+    # ansible/collections/. Each entry may be a git submodule that is NOT
+    # checked out in CI (validate.yml / .gitlab-ci.yml don't recurse
+    # submodules), so an entry is "shipped" if its name is present under the
+    # parent dir even when the gitlink directory is empty. listdir lists
+    # gitlink dir names regardless of whether their content is materialized.
+    has_roles = os.path.isdir("ansible/roles") and bool(os.listdir("ansible/roles"))
+    has_collections = os.path.isdir("ansible/collections") and bool(
+        os.listdir("ansible/collections")
     )
     has_templates = os.path.isdir("templates") and any(
         os.path.isdir(f"templates/{d}") for d in os.listdir("templates")
     )
 
-    if not (has_blueprints or has_roles or has_templates):
-        print("::error::source ships nothing; populate at least one of blueprints/, roles/, or templates/")
+    if not (has_blueprints or has_roles or has_collections or has_templates):
+        print("::error::source ships nothing; populate at least one of blueprints/, ansible/roles/, ansible/collections/, or templates/")
         return 1
 
     if has_blueprints:
