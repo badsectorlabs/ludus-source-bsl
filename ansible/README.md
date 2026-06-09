@@ -2,10 +2,6 @@
 
 The Ansible roles and collections shipped by the
 [Bad Sector Labs Ludus source](https://github.com/badsectorlabs/ludus-source-bsl).
-Bad Sector Labs' public Ludus roles and the `ludus_windows_utils` collection are
-vendored here as **git submodules**, each pinned to a release tag. Adding the
-source installs them automatically and
-re-syncing the source refreshes them to the pinned versions.
 
 ## Roles
 
