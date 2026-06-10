@@ -204,7 +204,6 @@ After deploy, navigate to Kibana → Fleet → Agents to verify all 5 agents are
 
 ## Acknowledgments
 
-- [Ludus](https://ludus.cloud) by [Bad Sector Labs](https://github.com/badsectorlabs)
 - [badsectorlabs.ludus_adcs](https://github.com/badsectorlabs/ludus_adcs)
 - [badsectorlabs.ludus_mssql](https://github.com/badsectorlabs/ludus_mssql)
 - [badsectorlabs.ludus_elastic_container](https://github.com/badsectorlabs/ludus_elastic_container)

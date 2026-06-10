@@ -160,7 +160,6 @@ Expected: **186/186** checks passing, **140/140** pytest tests passing.
 
 - [GOAD](https://github.com/Orange-Cyberdefense/GOAD) by [@Mayfly277](https://github.com/Mayfly277) / [Orange Cyberdefense](https://github.com/Orange-Cyberdefense)
 - [DreadGOAD](https://github.com/dreadnode/DreadGOAD) by [Dreadnode](https://github.com/dreadnode) — ACL implementation reference
-- [Ludus](https://ludus.cloud) by [Bad Sector Labs](https://github.com/badsectorlabs)
 
 ## License
 
