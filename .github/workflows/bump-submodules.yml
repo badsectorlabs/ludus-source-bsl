@@ -5,10 +5,11 @@ name: bump-submodules
 # Every run is a full sweep of all ansible/ submodules.
 
 on:
-  # Periodically re-pin anything that has drifted from its latest release tag.
+  # Daily sweep: re-pin anything that has drifted from its latest release tag.
   schedule:
-    - cron: "17 6 * * 1" # Mondays 06:17 UTC
-  # Manual: run on demand from the Actions tab.
+    - cron: "17 8 * * *" # 08:17 UTC daily (~3am US Eastern)
+  # Manual: run from the Actions tab, or at release time via
+  # `gh workflow run bump-submodules.yml -R badsectorlabs/ludus-source-bsl`.
   workflow_dispatch:
 
 permissions:
@@ -24,11 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout (with submodules + full tag history)
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           submodules: recursive
           fetch-depth: 0
-          token: ${{ secrets.BSL_BOT_PR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Bump submodules to latest release tags
         id: bump
@@ -129,9 +129,8 @@ jobs:
 
       - name: Open or update the bump PR
         if: steps.bump.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
         with:
-          token: ${{ secrets.BSL_BOT_PR_TOKEN || secrets.GITHUB_TOKEN }}
           branch: automation/bump-submodules
           delete-branch: false
           base: main
