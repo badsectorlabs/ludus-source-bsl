@@ -3,6 +3,11 @@ variable "description" {
   default = "Windows 11 25H2 Enterprise (x64) with Windows Defender disabled."
 }
 
+variable "icon_path" {
+  type    = string
+  default = "icon.png"
+}
+
 variable "iso_checksum" {
   type    = string
   default = "sha256:a61adeab895ef5a4db436e0a7011c92a2ff17bb0357f58b13bbc4062e535e7b9"
