@@ -15,7 +15,6 @@ ansible/
 ├── roles/                   Vendored ludus_* roles (git submodules, pinned to tags)
 └── collections/             Vendored collections — ludus_windows_utils (git submodule)
 source.yml                   Source metadata
-scripts/validate.py          Manifest validation (run by CI)
 .gitmodules                  Submodule definitions (absolute upstream URLs)
 ```
 
