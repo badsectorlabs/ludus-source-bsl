@@ -14,22 +14,6 @@
 # Other roles (badsectorlabs.ludus_adcs) are from their own Galaxy namespaces.
 # =============================================================================
 
-network:
-  inter_vlan_default: ACCEPT
-  rules:
-    - name: Allow Kali to Windows
-      vlan_src: 99
-      vlan_dst: 10
-      protocol: all
-      ports: all
-      action: ACCEPT
-    - name: Allow Windows to Kali
-      vlan_src: 10
-      vlan_dst: 99
-      protocol: all
-      ports: all
-      action: ACCEPT
-
 ludus:
   # ===========================================================================
   # DC01 — kingslanding — sevenkingdoms.local (Forest Root)
@@ -400,8 +384,8 @@ ludus:
   - vm_name: '{{ range_id }}-kali'
     hostname: '{{ range_id }}-kali'
     template: kali-x64-desktop-template
-    vlan: 99
-    ip_last_octet: 1
+    vlan: 10
+    ip_last_octet: 99
     ram_gb: 8
     cpus: 4
     linux: true
