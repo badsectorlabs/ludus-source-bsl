@@ -1,4 +1,70 @@
 - hosts: all
   become: true
-  roles:
-    - badsectorlabs.ludus_remnux
+  tasks:
+  - name: Add the REMnux user to the host
+    ansible.builtin.user:
+      name: remnux
+      password: "{{ 'malware' | password_hash('sha512', 'mysecretsalt') }}"
+      shell: /bin/bash
+    register: created_user
+  
+  - name: Install pre-requisites
+    ansible.builtin.apt:
+      name:
+        - gnupg
+        - curl
+        - git
+      state: present
+      update_cache: true
+  
+  #- name: Get latest REMnux release metadata
+  #  ansible.builtin.uri:
+  #    url: https://api.github.com/repos/REMnux/remnux-cli/releases/latest
+  #    return_content: true
+  #  register: remnux_api_response
+  
+  #- name: Parse URL and Checksum from Metadata
+  #  ansible.builtin.set_fact:
+  #    # 1. Filter the list of assets to find the one named 'remnux-cli-linux'
+  #    remnux_asset: "{{ remnux_api_response.json.assets | selectattr('name', 'equalto', 'remnux-cli-linux') | first }}"
+  
+  #- name: Set download variables
+  #  ansible.builtin.set_fact:
+  #    remnux_url: "{{ remnux_asset.browser_download_url }}"
+  #    # The API returns 'sha256:abcd...', which is exactly the format Ansible wants
+  #    remnux_checksum: "{{ remnux_asset.digest }}"
+  
+  #- name: Download remnux-cli (Dynamic & Verified)
+  #  ansible.builtin.get_url:
+  #    url: "{{ remnux_url }}"
+  #    dest: /usr/local/bin/remnux-cli
+  #    checksum: "{{ remnux_checksum }}"
+  #    mode: "0755"
+  
+  - name: Get remnux
+    ansible.builtin.get_url:
+      url: https://REMnux.org/remnux
+      dest: /usr/local/bin/remnux
+      checksum: "sha256:c1e2dbc7191c4c3382deea2c5ecc40d729c271b7d6b8897caa5cbeb7e3e7d203"
+      mode: "0755"
+  
+  - name: Chmod remnux
+    ansible.builtin.file:
+      dest: /usr/local/bin/remnux
+      mode: a+x
+  
+  - name: Run the REMnux installer - This will take a long time!
+    ansible.builtin.shell: /usr/local/bin/remnux install --mode=cloud
+    become: true
+    register: remnux_install
+    async: 7200
+    poll: 30
+  
+  - name: Reboot
+    ansible.builtin.reboot:
+    when: not remnux_install.failed
+  
+  - name: Success
+    ansible.builtin.debug:
+      msg: "REMnux install has finished!"
+  
