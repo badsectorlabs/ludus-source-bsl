@@ -10,7 +10,7 @@ variable "icon_path" {
 
 variable "iso_checksum" {
   type    = string
-  default = "sha256:f11bda2f2caed8f420802b59f382c25160b114ccc665dbac9c5046e7fceaced2"
+  default = "sha256:d6dab0c3a657988501b4bd76f1297c053df710e06e0c3aece60dead24f270b4d"
 }
 
 # The operating system. Can be wxp, w2k, w2k3, w2k8, wvista, win7, win8, win10, win11, l24 (Linux 2.4), l26 (Linux 2.6+), solaris or other. Defaults to other.
@@ -21,7 +21,7 @@ variable "os" {
 
 variable "iso_url" {
   type    = string
-  default = "https://cdimage.ubuntu.com/ubuntu-legacy-server/releases/20.04/release/ubuntu-20.04.1-legacy-server-amd64.iso"
+  default = "https://old-releases.ubuntu.com/releases/24.04.2/ubuntu-24.04.2-live-server-amd64.iso"
 }
 
 variable "vm_cpu_cores" {
@@ -36,7 +36,7 @@ variable "vm_disk_size" {
 
 variable "vm_memory" {
   type    = string
-  default = "4096"
+  default = "8192"
 }
 
 variable "vm_name" {
@@ -92,37 +92,19 @@ variable "ludus_nat_interface" {
 ####
 
 locals {
-  template_description = "REMnux (Ubutntu 20.04) template built ${legacy_isotime("2006-01-02 03:04:05")} username:password => localuser:password"
+  template_description = "REMnux (Ubutntu 24.04) template built ${legacy_isotime("2006-01-02 03:04:05")} username:password => localuser:password"
 }
 
 source "proxmox-iso" "remnux" {
   boot_command = [
-    "<esc><wait>",
-    "<esc><wait>",
-    "<enter><wait>",
-    "/install/vmlinuz <wait>",
-    "auto <wait>",
-    "console-setup/ask_detect=false ",
-    "debconf/frontend=noninteractive ",
-    "debian-installer=en_US ",
-    "fb=false ",
-    "hostname=remnux ",
-    "initrd=/install/initrd.gz ",
-    "kbd-chooser/method=us ",
-    "keyboard-configuration/modelcode=SKIP ",
-    "keyboard-configuration/layout=USA ",
-    "keyboard-configuration/variant=USA ",
-    "locale=en_US ",
-    "passwd/username=localuser ",
-    "passwd/user-fullname=localuser ",
-    "passwd/user-password=password ",
-    "passwd/user-password-again=password ",
-    "noapic ",
-    "preseed/url=http://{{.HTTPIP}}:{{.HTTPPort}}/remnux.cfg ",
-    " -- <enter>"
+    "e<down><down><down><end><wait>",
+    " autoinstall<wait>",
+    " ds='nocloud-net;s=http://{{ .HTTPIP }}:{{ .HTTPPort }}/'",
+    "<wait10>",
+    "<F10>"
   ]
-  boot_key_interval      = "20ms"
-  boot_keygroup_interval = "20ms"
+  boot_key_interval      = "100ms"
+  boot_keygroup_interval = "2s"
   http_directory         = "./http"
 
   communicator    = "ssh"
@@ -165,7 +147,16 @@ build {
   sources = ["source.proxmox-iso.remnux"]
 
   provisioner "ansible" {
-    playbook_file = "ansible/post-boot-config.yml"
+    playbook_file = "ansible/reset-machine-id.yml"
+    use_proxy     = false
+    user = "${var.ssh_username}"
+    extra_arguments = ["--extra-vars", "{ansible_python_interpreter: /usr/bin/python3, ansible_password: ${var.ssh_password}, ansible_sudo_pass: ${var.ssh_password}}"]
+    ansible_env_vars = ["ANSIBLE_HOME=${var.ansible_home}", "ANSIBLE_LOCAL_TEMP=${var.ansible_home}/tmp", "ANSIBLE_PERSISTENT_CONTROL_PATH_DIR=${var.ansible_home}/pc", "ANSIBLE_SSH_CONTROL_PATH_DIR=${var.ansible_home}/cp"]
+    skip_version_check = true
+  }
+
+  provisioner "ansible" {
+    playbook_file = "ansible/reset-ssh-host-keys.yml"
     use_proxy     = false
     user = "${var.ssh_username}"
     extra_arguments = ["--extra-vars", "{ansible_python_interpreter: /usr/bin/python3, ansible_password: ${var.ssh_password}, ansible_sudo_pass: ${var.ssh_password}}"]
