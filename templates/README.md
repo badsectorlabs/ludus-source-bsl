@@ -53,6 +53,21 @@ The name in the first column is what you pass to `ludus templates build -n`.
 | `ubuntu-24.04-x64-server-template` | Ubuntu 24.04 LTS (Noble Numbat) x64 server. |
 | `ubuntu-24.04-x64-desktop-template` | Ubuntu 24.04 LTS (Noble Numbat) x64 desktop. |
 
+#### Debian 10 Python runtime
+
+The Debian 10 template bootstraps Python 3.11.16 before running its Ansible
+provisioner. It installs a pinned
+[Python standalone distribution](https://github.com/astral-sh/python-build-standalone/releases/tag/20260924)
+under `/opt/ludus/python3.11`, verifies the archive's SHA-256 checksum, and exposes
+`/usr/local/bin/python3.11` for Ansible provisioning and interpreter discovery.
+Debian's `/usr/bin/python3` remains unchanged for system packages.
+
+The build needs access to Debian's archive repositories and GitHub release
+assets. Version, release tag, and checksum are pinned together in
+`debian10/scripts/bootstrap-python.sh`; update all three when refreshing the
+runtime. A Python minor-version change also requires updating the installation
+path and `ansible_python_interpreter` in `debian10/debian10.pkr.hcl`.
+
 ### Security / analyst workstations
 
 These need their companion roles installed as well. Install all three
