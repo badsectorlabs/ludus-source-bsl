@@ -110,7 +110,7 @@ ludus:
       - name: badsectorlabs.ludus_elastic_container
     role_vars:
       ludus_elastic_password: "ElasticS3cur3!"
-      ludus_elastic_stack_version: "9.3.1"
+      ludus_elastic_stack_version: "9.4.2"
 
   # ===========================================================================
   # DC01 — ludus.local Forest Root Primary DC, VLAN 10
@@ -201,7 +201,7 @@ ludus:
           password_never_expires: true
 
       # Elastic Agent with Sysmon for Windows telemetry
-      ludus_elastic_agent_version: "9.3.1"
+      ludus_elastic_agent_version: "9.4.2"
       ludus_elastic_install_sysmon: true
 
   # ===========================================================================
@@ -280,7 +280,7 @@ ludus:
           password_never_expires: false
 
       # Elastic Agent with Sysmon
-      ludus_elastic_agent_version: "9.3.1"
+      ludus_elastic_agent_version: "9.4.2"
       ludus_elastic_install_sysmon: true
 
   # ===========================================================================
@@ -310,7 +310,7 @@ ludus:
             role: badsectorlabs.ludus_elastic_container
     role_vars:
       # Elastic Agent with Sysmon on the workstation
-      ludus_elastic_agent_version: "9.3.1"
+      ludus_elastic_agent_version: "9.4.2"
       ludus_elastic_install_sysmon: true
 
   # ===========================================================================

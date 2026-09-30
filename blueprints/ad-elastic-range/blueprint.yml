@@ -3,7 +3,7 @@ manifest_version: 1
 id: ad-elastic-range
 name: "AD + Elastic Security Range"
 description: Star Wars-themed Active Directory attack lab with full Elastic Security stack.
-version: 0.1.0
+version: 0.2.0
 config: range-config.yml
 
 tags:
