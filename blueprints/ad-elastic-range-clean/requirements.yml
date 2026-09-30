@@ -9,6 +9,9 @@ roles:
   # Elastic agent — deploys agent + optional Sysmon to Windows endpoints
   - name: badsectorlabs.ludus_elastic_agent
 
+  # Docker — required by ludus_elastic_container
+  - name: geerlingguy.docker
+
 collections:
   # Windows utils collection — AD password policy, bulk content roles
   - name: badsectorlabs.ludus_windows_utils

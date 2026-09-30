@@ -5,6 +5,7 @@ roles:
   - name: badsectorlabs.ludus_mssql
   - name: badsectorlabs.ludus_elastic_container
   - name: badsectorlabs.ludus_elastic_agent
+  - name: geerlingguy.docker
 
 collections:
   - name: badsectorlabs.ludus_windows_utils
