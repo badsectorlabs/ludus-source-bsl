@@ -35,7 +35,7 @@ ludus range logs -f
 This source also ships 21 [Packer](https://www.packer.io/) templates — Debian, Ubuntu, Rocky Linux, Windows client/server, and analyst VMs (Commando VM, FLARE-VM, REMnux). Once installed, they appear in `ludus templates list`. Build one with:
 
 ```bash
-ludus templates build -n debian-13-x64-server-template
+ludus templates build -n debian-11-x64-server-template
 ```
 
 See [`templates/README.md`](./templates/README.md) for the full list. `commando-vm`, `flare-vm`, and `remnux` build on a base image and need their companion roles installed first.

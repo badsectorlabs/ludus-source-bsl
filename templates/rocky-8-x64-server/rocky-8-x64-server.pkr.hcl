@@ -142,11 +142,22 @@ source "proxmox-iso" "rocky8" {
 build {
   sources = ["source.proxmox-iso.rocky8"]
 
+  # Bootstrap a supported interpreter and native package/SELinux bindings over
+  # SSH before Ansible gathers facts. Rocky's system Python/DNF stay untouched.
+  provisioner "file" {
+    source      = "build-bindings.py"
+    destination = "/var/tmp/ludus-build-bindings.py"
+  }
+
+  provisioner "shell" {
+    script = "bootstrap-python.sh"
+  }
+
   provisioner "ansible" {
     playbook_file = "ansible/reset-ssh-host-keys.yml"
     use_proxy     = false
     user = "${var.ssh_username}"
-    extra_arguments = ["--extra-vars", "{ansible_python_interpreter: /usr/bin/python3, ansible_password: ${var.ssh_password}, ansible_sudo_pass: ${var.ssh_password}}"]
+    extra_arguments = ["--extra-vars", "{ansible_python_interpreter: /opt/ludus/python3.11/bin/python3.11, ansible_password: ${var.ssh_password}, ansible_sudo_pass: ${var.ssh_password}}"]
     ansible_env_vars = ["ANSIBLE_HOME=${var.ansible_home}", "ANSIBLE_LOCAL_TEMP=${var.ansible_home}/tmp", "ANSIBLE_PERSISTENT_CONTROL_PATH_DIR=${var.ansible_home}/pc", "ANSIBLE_SSH_CONTROL_PATH_DIR=${var.ansible_home}/cp"]
     skip_version_check = true
   }
