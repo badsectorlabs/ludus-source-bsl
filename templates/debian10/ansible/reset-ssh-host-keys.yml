@@ -2,6 +2,13 @@
   hosts: all
   become: true
   tasks:
+    - name: Install deployment hostname prerequisites using the bootstrapped APT bindings
+      ansible.builtin.apt:
+        name:
+          - dbus
+          - libpam-systemd
+        state: present
+
     - name: Create systemd service file for SSH host keys regeneration
       ansible.builtin.copy:
         dest: /etc/systemd/system/regenerate_ssh_host_keys.service

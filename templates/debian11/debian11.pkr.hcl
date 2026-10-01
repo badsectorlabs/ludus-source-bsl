@@ -1,6 +1,6 @@
 variable "description" {
   type    = string
-  default = "Debian 13 (Trixie) minimal x64 server."
+  default = "Debian 11 (Bullseye) minimal x64 server."
 }
 
 variable "icon_path" {
@@ -10,7 +10,7 @@ variable "icon_path" {
 
 variable "iso_checksum" {
   type    = string
-  default = "sha512:ce0eeee7b51fdcdbed1e5116668c1fee27e528767bdf488e5f115a67b225e5dfd0afca1d456aaa9408ceb6b8527521ff7b6b5d62fdbe6f8c5faaf8df56a96292"
+  default = "sha512:4460ef6470f6d8ae193c268e213d33a6a5a0da90c2d30c1024784faa4e4473f0c9b546a41e2d34c43fbbd43542ae4fb93cfd5cb6ac9b88a476f1a6877c478674"
 }
 
 # The operating system. Can be wxp, w2k, w2k3, w2k8, wvista, win7, win8, win10, l24 (Linux 2.4), l26 (Linux 2.6+), solaris or other. Defaults to other.
@@ -21,7 +21,7 @@ variable "os" {
 
 variable "iso_url" {
   type    = string
-  default = "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.6.0-amd64-netinst.iso"
+  default = "https://cdimage.debian.org/cdimage/archive/11.7.0/amd64/iso-cd/debian-11.7.0-amd64-netinst.iso"
 }
 
 variable "vm_cpu_cores" {
@@ -31,7 +31,7 @@ variable "vm_cpu_cores" {
 
 variable "vm_disk_size" {
   type    = string
-  default = "60G"
+  default = "200G"
 }
 
 variable "vm_memory" {
@@ -41,7 +41,7 @@ variable "vm_memory" {
 
 variable "vm_name" {
   type    = string
-  default = "debian-13-x64-server-template"
+  default = "debian-11-x64-server-template"
 }
 
 variable "ssh_password" {
@@ -92,19 +92,20 @@ variable "ludus_nat_interface" {
 ####
 
 locals {
-  template_description = "Debian 13 template built ${legacy_isotime("2006-01-02 03:04:05")} username:password => debian:debian"
+  template_description = "Debian 11 template built ${legacy_isotime("2006-01-02 03:04:05")} username:password => debian:debian"
 }
 
-source "proxmox-iso" "debian13" {
+source "proxmox-iso" "debian11" {
   boot_command = [
-    "<down><tab>", # non-graphical install
-    "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/debian-13-preseed.cfg ",
-    "language=en locale=en_US.UTF-8 ",
-    "country=US keymap=us ",
-    "hostname=debian13 domain=local ",
+    "<down><tab><wait>", # non-graphical install
+    "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/debian-11-preseed.cfg ",
+    "<wait>language=en locale=en_US.UTF-8 ",
+    "<wait>country=US keymap=us ",
+    "<wait>hostname=debian11 domain=local ",
     "<enter><wait>",
   ]
   boot_key_interval = "100ms"
+  boot_wait = "15s"
   http_directory = "./http"
 
   boot_iso {
@@ -150,7 +151,7 @@ source "proxmox-iso" "debian13" {
 }
 
 build {
-  sources = ["source.proxmox-iso.debian13"]
+  sources = ["source.proxmox-iso.debian11"]
 
   provisioner "ansible" {
     playbook_file = "ansible/reset-ssh-host-keys.yml"
